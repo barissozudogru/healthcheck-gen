@@ -1,18 +1,50 @@
-# healthcheck-gen
+<h1 align="center">healthcheck-gen</h1>
 
-Generate Docker HEALTHCHECK instructions by analyzing your Dockerfile.
+<p align="center">
+  Generate production-ready Docker HEALTHCHECK instructions by analyzing your Dockerfile.
+</p>
 
-Reads your Dockerfile, detects the application type and exposed port, then outputs ready-to-use HEALTHCHECK instructions for both `Dockerfile` and `docker-compose.yml`.
+<p align="center">
+  <img src="https://img.shields.io/badge/TypeScript-3178C6?style=flat&logo=typescript&logoColor=white" alt="TypeScript">
+  <img src="https://img.shields.io/badge/Node.js-%3E%3D18-339933?style=flat&logo=node.js&logoColor=white" alt="Node.js >= 18">
+  <img src="https://img.shields.io/badge/License-MIT-blue?style=flat" alt="MIT License">
+  <img src="https://img.shields.io/badge/Zero_Dependencies-brightgreen?style=flat" alt="Zero Dependencies">
+</p>
 
-## Install
+---
+
+## What It Does
+
+`healthcheck-gen` reads your Dockerfile, detects the base image, framework, and exposed port, then generates a `HEALTHCHECK` instruction ready to paste into your `Dockerfile` or `docker-compose.yml`. It also surfaces a minimal `/health` endpoint snippet for the detected framework so your container has something to respond to.
+
+- Detects base image and framework automatically
+- Chooses `wget` on Alpine-based images, `curl` everywhere else
+- Handles multi-stage builds (only the final stage is analyzed)
+- Removes an existing `HEALTHCHECK` before appending a new one
+- Outputs plain Dockerfile syntax, Compose YAML, or JSON for scripting
+
+## Supported Base Images
+
+| Base image | Health check strategy | Default port |
+|---|---|---|
+| `node` / `node:*-alpine` | `curl -f` or `wget` to `/health` | from `EXPOSE` or `3000` |
+| `python` / `python:*-alpine` | `curl -f` or `wget` to `/health` | from `EXPOSE` or `3000` |
+| `golang` / `golang:*-alpine` | `curl -f` or `wget` to `/health` | from `EXPOSE` or `3000` |
+| `postgres` / `postgres:*-alpine` | `pg_isready -U ${POSTGRES_USER:-postgres}` | `5432` |
+| `redis` / `redis:*-alpine` | `redis-cli ping` | `6379` |
+| `nginx` / `nginx:*-alpine` | `curl -f` or `wget` to `/` | `80` |
+
+Alpine variants are detected by inspecting the image tag for the string `alpine`. When found, `wget -q --spider` replaces `curl -f` since curl is not always present in Alpine-based images.
+
+Framework detection covers: Express, Fastify, Next.js, NestJS, FastAPI, Flask, Django, Gin, Fiber, and Echo. Each gets a matching `/health` endpoint snippet in the output.
+
+## Quick Start
 
 ```bash
+# Install globally
 npm install -g @barissozudogru/healthcheck-gen
-```
 
-Or run without installing:
-
-```bash
+# Or run directly with npx
 npx @barissozudogru/healthcheck-gen
 ```
 
@@ -20,28 +52,74 @@ npx @barissozudogru/healthcheck-gen
 
 ```
 healthcheck-gen [options]
-
-Options:
-  --dockerfile <path>       Path to Dockerfile (default: ./Dockerfile)
-  --append                  Append HEALTHCHECK to the Dockerfile
-  --compose                 Output docker-compose.yml healthcheck block
-  --json                    Output result as JSON
-  --none                    Generate HEALTHCHECK NONE (disable healthcheck)
-  --interval <duration>     Override interval (default: 30s)
-  --timeout <duration>      Override timeout (default: 5s)
-  --retries <n>             Override retries (default: 3)
-  --start-period <duration> Override start-period (default: 10s)
-  --help, -h                Show help
-  --version, -v             Show version
 ```
 
-## Examples
+Run without arguments to analyze `./Dockerfile` in the current directory.
 
-Analyze the Dockerfile in the current directory:
+## Options
 
-```bash
-healthcheck-gen
+| Flag | Argument | Default | Description |
+|---|---|---|---|
+| `--dockerfile` | `<path>` | `./Dockerfile` | Path to the Dockerfile to analyze |
+| `--append` | — | — | Append the generated `HEALTHCHECK` to the Dockerfile (replaces any existing one) |
+| `--compose` | — | — | Print the equivalent `docker-compose.yml` healthcheck block |
+| `--json` | — | — | Output all results as JSON (useful for scripting and CI) |
+| `--none` | — | — | Generate `HEALTHCHECK NONE` to explicitly disable health checking |
+| `--interval` | `<duration>` | `30s` | Override the `--interval` timing parameter |
+| `--timeout` | `<duration>` | `5s` | Override the `--timeout` timing parameter |
+| `--retries` | `<n>` | `3` | Override the `--retries` count |
+| `--start-period` | `<duration>` | `10s` | Override the `--start-period` timing parameter |
+| `--help`, `-h` | — | — | Show help message |
+| `--version`, `-v` | — | — | Print version |
+
+Duration values accept the same format Docker does: `30s`, `1m30s`, `2m`, etc.
+
+## Example Output
+
+Given a `Dockerfile` that starts with `FROM node:20-alpine` and `EXPOSE 3000`:
+
 ```
+healthcheck-gen analysis for /app/Dockerfile
+------------------------------------------------------------
+
+Detected
+  Base image  : node:20-alpine
+  App type    : node
+  Framework   : express
+  Port        : 3000
+
+HEALTHCHECK instruction
+HEALTHCHECK \
+  --interval=30s \
+  --timeout=5s \
+  --start-period=10s \
+  --retries=3 \
+  CMD wget -q --spider http://localhost:3000/health || exit 1
+```
+
+Running with `--compose` adds:
+
+```yaml
+services:
+  your-service:
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:3000/health || exit 1"]
+      interval: 30s
+      timeout: 5s
+      start_period: 10s
+      retries: 3
+```
+
+Running with `--compose` also prints a suggested `/health` endpoint snippet:
+
+```js
+// Express health endpoint
+app.get('/health', (req, res) => {
+  res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+```
+
+## More Usage Examples
 
 Analyze a specific Dockerfile:
 
@@ -49,25 +127,25 @@ Analyze a specific Dockerfile:
 healthcheck-gen --dockerfile ./docker/Dockerfile.prod
 ```
 
-Append the generated HEALTHCHECK directly to the Dockerfile:
+Append the generated instruction directly to the Dockerfile:
 
 ```bash
 healthcheck-gen --append
 ```
 
-Show the docker-compose.yml equivalent block:
+Print the Compose block alongside the instruction:
 
 ```bash
 healthcheck-gen --compose
 ```
 
-Append to Dockerfile and show compose block together:
+Append and print the Compose block together:
 
 ```bash
 healthcheck-gen --append --compose
 ```
 
-Output result as JSON (useful for scripting):
+Output as JSON for use in scripts or CI pipelines:
 
 ```bash
 healthcheck-gen --json
@@ -79,34 +157,37 @@ Disable health checking entirely:
 healthcheck-gen --none --append
 ```
 
-Override timing parameters:
+Override all timing parameters:
 
 ```bash
 healthcheck-gen --interval 60s --timeout 10s --retries 5 --start-period 30s
 ```
 
-## Detected app types
+## CI Integration
 
-| Base image | Health check strategy |
+Use `--json` to consume the output in a pipeline step:
+
+```yaml
+- name: Generate HEALTHCHECK
+  run: |
+    npx @barissozudogru/healthcheck-gen --json > healthcheck.json
+    cat healthcheck.json | jq '.dockerfileInstruction'
+```
+
+Or append directly during a Docker build preparation step:
+
+```yaml
+- name: Append HEALTHCHECK to Dockerfile
+  run: npx @barissozudogru/healthcheck-gen --append
+```
+
+## Exit Codes
+
+| Code | Meaning |
 |---|---|
-| node | `curl -f http://localhost:PORT/health` |
-| python | `curl -f http://localhost:PORT/health` |
-| golang | `curl -f http://localhost:PORT/health` |
-| postgres | `pg_isready` |
-| redis | `redis-cli ping` |
-| nginx | `curl -f http://localhost/` |
-
-Detected frameworks (Express, Fastify, Next.js, NestJS, FastAPI, Flask, Django, Gin, Fiber, Echo) also get a minimal `/health` endpoint snippet.
-
-## Defaults
-
-```
---interval=30s
---timeout=5s
---start-period=10s
---retries=3
-```
+| `0` | Success |
+| `1` | Dockerfile not found, parse error, or invalid arguments |
 
 ## License
 
-MIT
+[MIT](./LICENSE)
