@@ -22,11 +22,17 @@ npx @barissozudogru/healthcheck-gen
 healthcheck-gen [options]
 
 Options:
-  --dockerfile <path>   Path to Dockerfile (default: ./Dockerfile)
-  --append              Append HEALTHCHECK to the Dockerfile
-  --compose             Output docker-compose.yml healthcheck block
-  --help, -h            Show help
-  --version, -v         Show version
+  --dockerfile <path>       Path to Dockerfile (default: ./Dockerfile)
+  --append                  Append HEALTHCHECK to the Dockerfile
+  --compose                 Output docker-compose.yml healthcheck block
+  --json                    Output result as JSON
+  --none                    Generate HEALTHCHECK NONE (disable healthcheck)
+  --interval <duration>     Override interval (default: 30s)
+  --timeout <duration>      Override timeout (default: 5s)
+  --retries <n>             Override retries (default: 3)
+  --start-period <duration> Override start-period (default: 10s)
+  --help, -h                Show help
+  --version, -v             Show version
 ```
 
 ## Examples
@@ -59,6 +65,24 @@ Append to Dockerfile and show compose block together:
 
 ```bash
 healthcheck-gen --append --compose
+```
+
+Output result as JSON (useful for scripting):
+
+```bash
+healthcheck-gen --json
+```
+
+Disable health checking entirely:
+
+```bash
+healthcheck-gen --none --append
+```
+
+Override timing parameters:
+
+```bash
+healthcheck-gen --interval 60s --timeout 10s --retries 5 --start-period 30s
 ```
 
 ## Detected app types

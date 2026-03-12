@@ -426,11 +426,32 @@ export function appendHealthcheckToDockerfile(
   }
 
   // Remove any existing HEALTHCHECK instruction that belongs to the final
-  // stage only (lines after lastFromIndex).
-  const filtered = lines.filter((line, idx) => {
-    if (idx <= lastFromIndex) return true;
-    return !line.trim().toUpperCase().startsWith("HEALTHCHECK");
-  });
+  // stage only (lines after lastFromIndex). Handle multi-line continuations
+  // with trailing backslashes.
+  const filtered: string[] = [];
+  let skipContinuation = false;
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    if (i <= lastFromIndex) {
+      filtered.push(line);
+      continue;
+    }
+    if (skipContinuation) {
+      // Keep skipping until a line without a trailing backslash is consumed.
+      if (!line.trimEnd().endsWith("\\")) {
+        skipContinuation = false;
+      }
+      continue;
+    }
+    if (line.trim().toUpperCase().startsWith("HEALTHCHECK")) {
+      // Start skipping; if this line itself continues, set the flag.
+      if (line.trimEnd().endsWith("\\")) {
+        skipContinuation = true;
+      }
+      continue;
+    }
+    filtered.push(line);
+  }
 
   const trimmed = filtered.join("\n").trimEnd();
   const updated = `${trimmed}\n\n${instruction}\n`;

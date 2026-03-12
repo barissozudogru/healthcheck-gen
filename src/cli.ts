@@ -10,15 +10,18 @@ import {
 } from "./index.js";
 import type { HealthcheckOverrides } from "./index.js";
 
-const RESET = "\x1b[0m";
-const BOLD = "\x1b[1m";
-const DIM = "\x1b[2m";
-const GREEN = "\x1b[32m";
-const CYAN = "\x1b[36m";
-const YELLOW = "\x1b[33m";
-const RED = "\x1b[31m";
+const USE_COLOR = process.stdout.isTTY === true || process.stderr.isTTY === true;
+
+const RESET  = USE_COLOR ? "\x1b[0m"  : "";
+const BOLD   = USE_COLOR ? "\x1b[1m"  : "";
+const DIM    = USE_COLOR ? "\x1b[2m"  : "";
+const GREEN  = USE_COLOR ? "\x1b[32m" : "";
+const CYAN   = USE_COLOR ? "\x1b[36m" : "";
+const YELLOW = USE_COLOR ? "\x1b[33m" : "";
+const RED    = USE_COLOR ? "\x1b[31m" : "";
 
 function color(text: string, ...codes: string[]): string {
+  if (!USE_COLOR) return text;
   return `${codes.join("")}${text}${RESET}`;
 }
 
