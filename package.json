@@ -1,0 +1,39 @@
+{
+  "name": "@barissozudogru/healthcheck-gen",
+  "version": "0.1.0",
+  "description": "Generate Docker HEALTHCHECK instructions from Dockerfile analysis",
+  "bin": {
+    "healthcheck-gen": "./dist/cli.js"
+  },
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "prepublishOnly": "npm run build"
+  },
+  "files": [
+    "dist",
+    "LICENSE",
+    "README.md"
+  ],
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/barissozudogru/healthcheck-gen.git"
+  },
+  "keywords": [
+    "docker",
+    "healthcheck",
+    "dockerfile",
+    "generator",
+    "cli"
+  ],
+  "author": "Baris Sozudogru",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^22.19.15",
+    "typescript": "^5.9.3"
+  }
+}
