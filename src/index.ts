@@ -18,17 +18,11 @@ export type {
 
 const BASE_IMAGE_PATTERNS: Record<string, BaseImage> = {
   node: "node",
-  "node:": "node",
   python: "python",
-  "python:": "python",
   postgres: "postgres",
-  "postgres:": "postgres",
   redis: "redis",
-  "redis:": "redis",
   nginx: "nginx",
-  "nginx:": "nginx",
   golang: "golang",
-  "golang:": "golang",
   go: "golang",
 };
 
@@ -124,8 +118,12 @@ function detectBaseImage(fromValue: string): BaseImage {
   const imageName = lower.split(":")[0].split("/").pop() ?? lower;
 
   for (const [pattern, base] of Object.entries(BASE_IMAGE_PATTERNS)) {
-    const patternName = pattern.replace(/:$/, "");
-    if (imageName === patternName || imageName.includes(patternName)) {
+    if (
+      imageName === pattern ||
+      imageName.startsWith(`${pattern}-`) ||
+      imageName.startsWith(`${pattern}_`) ||
+      (pattern === "python" && imageName.startsWith("python"))
+    ) {
       return base;
     }
   }
