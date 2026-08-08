@@ -1,27 +1,16 @@
-<h1 align="center">healthcheck-gen</h1>
+# healthcheck-gen
 
-<p align="center">
-  Generate production-ready Docker HEALTHCHECK instructions by analyzing your Dockerfile.
-</p>
+Generate Docker HEALTHCHECK instructions by analyzing your Dockerfile.
 
-<p align="center">
-  <img src="https://img.shields.io/badge/TypeScript-3178C6?style=flat&logo=typescript&logoColor=white" alt="TypeScript">
-  <img src="https://img.shields.io/badge/Node.js-%3E%3D18-339933?style=flat&logo=node.js&logoColor=white" alt="Node.js >= 18">
-  <img src="https://img.shields.io/badge/License-MIT-blue?style=flat" alt="MIT License">
-  <img src="https://img.shields.io/badge/Zero_Dependencies-brightgreen?style=flat" alt="Zero Dependencies">
-</p>
+`healthcheck-gen` reads your Dockerfile to detect the base image, framework, and exposed port. It generates a `HEALTHCHECK` instruction ready to paste into your `Dockerfile` or `docker-compose.yml`, and surfaces a minimal `/health` endpoint snippet for the detected framework. It chooses `wget` on Alpine-based images and `curl` elsewhere, safely replaces existing `HEALTHCHECK` instructions in multi-stage builds, and outputs plain Dockerfile syntax, Compose YAML, or JSON.
 
----
+```bash
+# Install globally
+npm install -g @barissozudogru/healthcheck-gen
 
-## What It Does
-
-`healthcheck-gen` reads your Dockerfile, detects the base image, framework, and exposed port, then generates a `HEALTHCHECK` instruction ready to paste into your `Dockerfile` or `docker-compose.yml`. It also surfaces a minimal `/health` endpoint snippet for the detected framework so your container has something to respond to.
-
-- Detects base image and framework automatically
-- Chooses `wget` on Alpine-based images, `curl` everywhere else
-- Handles multi-stage builds (only the final stage is analyzed)
-- Removes an existing `HEALTHCHECK` before appending a new one
-- Outputs plain Dockerfile syntax, Compose YAML, or JSON for scripting
+# Or run directly with npx
+npx @barissozudogru/healthcheck-gen
+```
 
 ## Supported Base Images
 
@@ -37,16 +26,6 @@
 Alpine variants are detected by inspecting the image tag for the string `alpine`. When found, `wget -q --spider` replaces `curl -f` since curl is not always present in Alpine-based images.
 
 Framework detection covers: Express, Fastify, Next.js, NestJS, FastAPI, Flask, Django, Gin, Fiber, and Echo. Each gets a matching `/health` endpoint snippet in the output.
-
-## Quick Start
-
-```bash
-# Install globally
-npm install -g @barissozudogru/healthcheck-gen
-
-# Or run directly with npx
-npx @barissozudogru/healthcheck-gen
-```
 
 ## Usage
 
