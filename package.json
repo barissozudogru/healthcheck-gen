@@ -1,6 +1,6 @@
 {
   "name": "@barissozudogru/healthcheck-gen",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "Generate Docker HEALTHCHECK instructions from Dockerfile analysis",
   "type": "module",
   "bin": {
@@ -22,7 +22,7 @@
     "README.md"
   ],
   "publishConfig": {
-    "registry": "https://npm.pkg.github.com"
+    "access": "public"
   },
   "repository": {
     "type": "git",

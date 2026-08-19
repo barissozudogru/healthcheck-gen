@@ -6,6 +6,15 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ---
 
+## [0.4.0] - 2026-08-19
+
+### Fixed
+- Slim and distroless images get a probe their runtime can execute, instead of a `curl` command those images do not ship.
+
+### Added
+- Warning when the base image has no HTTP client and no known runtime fallback.
+- Probe tests covering slim, full, Alpine and multi-stage builds.
+
 ## [0.3.0] - 2026-03-12
 
 ### Added
