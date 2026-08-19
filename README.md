@@ -40,16 +40,16 @@ Run without arguments to analyze `./Dockerfile` in the current directory.
 | Flag | Argument | Default | Description |
 |---|---|---|---|
 | `--dockerfile` | `<path>` | `./Dockerfile` | Path to the Dockerfile to analyze |
-| `--append` |  -  |  -  | Append the generated `HEALTHCHECK` to the Dockerfile (replaces any existing one) |
-| `--compose` |  -  |  -  | Print the equivalent `docker-compose.yml` healthcheck block |
-| `--json` |  -  |  -  | Output all results as JSON (useful for scripting and CI) |
-| `--none` |  -  |  -  | Generate `HEALTHCHECK NONE` to explicitly disable health checking |
+| `--append` | - | - | Append the generated `HEALTHCHECK` to the Dockerfile (replaces any existing one) |
+| `--compose` | - | - | Print the equivalent `docker-compose.yml` healthcheck block |
+| `--json` | - | - | Output all results as JSON (useful for scripting and CI) |
+| `--none` | - | - | Generate `HEALTHCHECK NONE` to explicitly disable health checking |
 | `--interval` | `<duration>` | `30s` | Override the `--interval` timing parameter |
 | `--timeout` | `<duration>` | `5s` | Override the `--timeout` timing parameter |
 | `--retries` | `<n>` | `3` | Override the `--retries` count |
 | `--start-period` | `<duration>` | `10s` | Override the `--start-period` timing parameter |
-| `--help`, `-h` |  -  |  -  | Show help message |
-| `--version`, `-v` |  -  |  -  | Print version |
+| `--help`, `-h` | - | - | Show help message |
+| `--version`, `-v` | - | - | Print version |
 
 Duration values accept the same format Docker does: `30s`, `1m30s`, `2m`, etc.
 
