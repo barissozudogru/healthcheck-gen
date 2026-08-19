@@ -33,10 +33,10 @@ The project has no runtime dependencies. Keep it that way - `devDependencies` ar
 
 ```
 src/
-  types.ts      -- shared TypeScript type definitions
-  index.ts      -- core parsing and generation logic (importable as a library)
-  cli.ts        -- command-line entry point
-dist/           -- compiled output (generated, not committed)
+  types.ts      - shared TypeScript type definitions
+  index.ts      - core parsing and generation logic (importable as a library)
+  cli.ts        - command-line entry point
+dist/           - compiled output (generated, not committed)
 ```
 
 ## Submitting changes
