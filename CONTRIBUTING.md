@@ -27,7 +27,7 @@ Run the CLI from the built output:
 node dist/cli.js --dockerfile ./path/to/Dockerfile
 ```
 
-The project has no runtime dependencies. Keep it that way  -  `devDependencies` are fine, but anything that ends up in `dist/` must be implemented from scratch.
+The project has no runtime dependencies. Keep it that way - `devDependencies` are fine, but anything that ends up in `dist/` must be implemented from scratch.
 
 ## Project structure
 
