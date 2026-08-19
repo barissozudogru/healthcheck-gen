@@ -44,9 +44,23 @@ const FRAMEWORK_PATTERNS: Record<string, Framework> = {
 };
 
 /** Returns true when the FROM image name suggests an Alpine-based distribution. */
-function isAlpineImage(rawFrom: string): boolean {
+export function isAlpineImage(rawFrom: string): boolean {
   const lower = rawFrom.toLowerCase();
   return lower.includes("alpine");
+}
+
+/**
+ * Returns true for image variants that ship no HTTP client at all.
+ *
+ * Debian slim variants carry neither curl nor wget, so a curl-based
+ * HEALTHCHECK fails with "curl: not found" and the container is marked
+ * unhealthy forever while the app itself is serving normally. Verified against
+ * node:22-slim and python:3.12-slim; the full node:22 has both binaries and
+ * Alpine has wget from busybox.
+ */
+export function isMinimalImage(rawFrom: string): boolean {
+  const lower = rawFrom.toLowerCase();
+  return lower.includes("slim") || lower.includes("distroless");
 }
 
 export function parseDockerfile(content: string): DockerfileAnalysis {
@@ -193,12 +207,31 @@ function buildHealthcheckConfig(
 
   const port = analysis.port;
   const alpine = isAlpineImage(analysis.rawFrom);
+  const minimal = isMinimalImage(analysis.rawFrom);
 
-  // Prefer wget on Alpine images where curl may not be installed.
-  const httpCheck = (url: string): string =>
-    alpine
-      ? `wget -q --spider ${url} || exit 1`
-      : `curl -f ${url} || exit 1`;
+  /**
+   * Pick a probe the base image can actually run.
+   *
+   * Alpine has wget but no curl. Debian slim has neither, so there the probe
+   * has to come from the language runtime that is already in the image.
+   */
+  const httpCheck = (url: string): string => {
+    if (alpine) return `wget -q --spider ${url} || exit 1`;
+
+    if (minimal) {
+      if (analysis.baseImage === "node") {
+        return `node -e "fetch('${url}').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"`;
+      }
+      if (analysis.baseImage === "python") {
+        return `python -c "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('${url}', timeout=5).status == 200 else 1)"`;
+      }
+      // No known runtime to fall back on. curl is still the most likely thing
+      // to be installed deliberately, and the CLI warns that it is missing.
+      return `curl -f ${url} || exit 1`;
+    }
+
+    return `curl -f ${url} || exit 1`;
+  };
 
   switch (analysis.baseImage) {
     case "postgres":
