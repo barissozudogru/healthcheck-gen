@@ -7,6 +7,7 @@ import { fileURLToPath } from "url";
 import {
   analyzeDockerfile,
   appendHealthcheckToDockerfile,
+  isMinimalImage,
 } from "./index.js";
 import type { HealthcheckOverrides } from "./index.js";
 
@@ -265,6 +266,29 @@ ${color(dockerfileInstruction, CYAN)}
   if (none) {
     console.log(
       color("Note: HEALTHCHECK NONE disables health checking for this image.", DIM)
+    );
+    console.log();
+  }
+
+  // Slim and distroless images ship no curl or wget. Where the runtime is known
+  // the probe uses it instead, but for anything else the best available probe
+  // still needs a binary the image does not have.
+  if (
+    !none &&
+    isMinimalImage(analysis.rawFrom) &&
+    healthcheck.test.includes("curl")
+  ) {
+    console.log(
+      color(
+        `Warning: ${analysis.rawFrom} is a minimal image and ships no curl or wget.`,
+        YELLOW
+      )
+    );
+    console.log(
+      color(
+        "  Install one in the image, or replace the probe with a command your runtime provides.",
+        DIM
+      )
     );
     console.log();
   }
