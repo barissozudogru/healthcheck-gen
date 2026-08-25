@@ -6,6 +6,17 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ---
 
+## [0.5.0] - 2026-08-26
+
+### Added
+
+- Reusable GitHub Action that generates a reviewable health check and can apply it only when explicitly enabled.
+- Continuous integration, Petri Labs discovery metadata, download badges, and a repository social preview.
+
+### Changed
+
+- The package homepage now points to the focused Petri Labs tool page while source and issues remain on GitHub.
+
 ## [0.4.0] - 2026-08-19
 
 ### Fixed

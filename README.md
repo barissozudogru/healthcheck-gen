@@ -1,8 +1,21 @@
+<p align="center">
+  <img src="./assets/social-preview.svg" alt="healthcheck-gen" width="900" />
+</p>
+
+<p align="center">
+  <a href="https://www.npmjs.com/package/@barissozudogru/healthcheck-gen"><img alt="npm version" src="https://img.shields.io/npm/v/@barissozudogru/healthcheck-gen?style=flat-square&color=D6AA67"></a>
+  <a href="https://www.npmjs.com/package/@barissozudogru/healthcheck-gen"><img alt="npm downloads" src="https://img.shields.io/npm/dm/@barissozudogru/healthcheck-gen?style=flat-square&color=D6AA67"></a>
+  <a href="https://github.com/barissozudogru/healthcheck-gen/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/barissozudogru/healthcheck-gen/actions/workflows/ci.yml/badge.svg"></a>
+  <a href="./LICENSE"><img alt="MIT license" src="https://img.shields.io/badge/License-MIT-D6AA67?style=flat-square"></a>
+</p>
+
 # healthcheck-gen
 
 Generate Docker HEALTHCHECK instructions by analyzing your Dockerfile.
 
-`healthcheck-gen` reads your Dockerfile to detect the base image, framework, and exposed port. It generates a `HEALTHCHECK` instruction ready to paste into your `Dockerfile` or `docker-compose.yml`, and surfaces a minimal `/health` endpoint snippet for the detected framework. It chooses `wget` on Alpine-based images and `curl` elsewhere, safely replaces existing `HEALTHCHECK` instructions in multi-stage builds, and outputs plain Dockerfile syntax, Compose YAML, or JSON.
+`healthcheck-gen` reads your Dockerfile to detect the base image, framework, and exposed port. It generates a `HEALTHCHECK` instruction ready to paste into your `Dockerfile` or `docker-compose.yml`, and surfaces a minimal `/health` endpoint snippet for the detected framework. It chooses `wget` on Alpine, a built-in runtime probe for supported slim images, and `curl` on fuller images. It safely replaces existing `HEALTHCHECK` instructions in multi-stage builds and outputs plain Dockerfile syntax, Compose YAML, or JSON.
+
+[Tool page](https://petri-labs.org/tools/healthcheck-gen/) · [npm](https://www.npmjs.com/package/@barissozudogru/healthcheck-gen) · [Source](https://github.com/barissozudogru/healthcheck-gen)
 
 ```bash
 # Install globally
@@ -16,8 +29,8 @@ npx @barissozudogru/healthcheck-gen
 
 | Base image | Health check strategy | Default port |
 |---|---|---|
-| `node` / `node:*-alpine` | `curl -f` or `wget` to `/health` | from `EXPOSE` or `3000` |
-| `python` / `python:*-alpine` | `curl -f` or `wget` to `/health` | from `EXPOSE` or `3000` |
+| `node` | Node `fetch` on slim images, otherwise `curl` or `wget` to `/health` | from `EXPOSE` or `3000` |
+| `python` | Python `urllib` on slim images, otherwise `curl` or `wget` to `/health` | from `EXPOSE` or `3000` |
 | `golang` / `golang:*-alpine` | `curl -f` or `wget` to `/health` | from `EXPOSE` or `3000` |
 | `postgres` / `postgres:*-alpine` | `pg_isready -U ${POSTGRES_USER:-postgres}` | `5432` |
 | `redis` / `redis:*-alpine` | `redis-cli ping` | `6379` |
@@ -98,6 +111,21 @@ app.get('/health', (req, res) => {
 });
 ```
 
+### Verified excerpt from a real Dockerfile
+
+Running the current release against the public `release-intel-mcp` Dockerfile detects its actual runtime and produces a probe that does not assume `curl` is installed. The final line below is shortened for readability:
+
+```text
+Detected
+  Base image  : node:22-slim
+  Framework   : express
+  Port        : 3000
+
+HEALTHCHECK CMD node -e "fetch('http://localhost:3000/health')..."
+```
+
+If this saves you time, consider [starring the repository](https://github.com/barissozudogru/healthcheck-gen). It helps other developers find it.
+
 ## More Usage Examples
 
 Analyze a specific Dockerfile:
@@ -143,6 +171,27 @@ healthcheck-gen --interval 60s --timeout 10s --retries 5 --start-period 30s
 ```
 
 ## CI Integration
+
+Use the reusable action to generate a reviewable workflow summary without changing the Dockerfile:
+
+```yaml
+name: Health check review
+
+on: [pull_request]
+
+jobs:
+  healthcheck:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: barissozudogru/healthcheck-gen@v0.5.0
+        with:
+          dockerfile: Dockerfile
+```
+
+Set `append: true` only when the workflow should modify the checked-out Dockerfile. The action leaves committing or opening a pull request to the surrounding workflow so the diff remains explicit.
 
 Use `--json` to consume the output in a pipeline step:
 

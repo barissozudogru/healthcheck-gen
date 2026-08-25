@@ -1,6 +1,6 @@
 {
   "name": "@barissozudogru/healthcheck-gen",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "description": "Generate Docker HEALTHCHECK instructions from Dockerfile analysis",
   "type": "module",
   "bin": {
@@ -29,11 +29,18 @@
     "type": "git",
     "url": "https://github.com/barissozudogru/healthcheck-gen.git"
   },
+  "homepage": "https://petri-labs.org/tools/healthcheck-gen/",
+  "bugs": {
+    "url": "https://github.com/barissozudogru/healthcheck-gen/issues"
+  },
   "keywords": [
     "docker",
     "healthcheck",
     "dockerfile",
+    "container-health",
+    "devops",
     "generator",
+    "ci",
     "cli"
   ],
   "author": "Baris Sozudogru",

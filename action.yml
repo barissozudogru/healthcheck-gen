@@ -1,0 +1,68 @@
+name: Generate Docker health check
+description: Inspect a Dockerfile and generate a reviewable HEALTHCHECK instruction.
+author: Petri Labs
+
+branding:
+  icon: activity
+  color: yellow
+
+inputs:
+  dockerfile:
+    description: Dockerfile path to inspect.
+    required: false
+    default: Dockerfile
+  append:
+    description: Apply the generated instruction to the Dockerfile.
+    required: false
+    default: "false"
+  compose:
+    description: Include the matching Compose healthcheck block.
+    required: false
+    default: "false"
+
+outputs:
+  report:
+    description: The generated health check report.
+    value: ${{ steps.generate.outputs.report }}
+
+runs:
+  using: composite
+  steps:
+    - id: generate
+      name: Generate health check
+      shell: bash
+      env:
+        INPUT_DOCKERFILE: ${{ inputs.dockerfile }}
+        INPUT_APPEND: ${{ inputs.append }}
+        INPUT_COMPOSE: ${{ inputs.compose }}
+      run: |
+        package_version="$(node -p "require('$GITHUB_ACTION_PATH/package.json').version")"
+        command=(npx --yes "@barissozudogru/healthcheck-gen@${package_version}" --dockerfile "$INPUT_DOCKERFILE")
+        if [ "$INPUT_APPEND" = "true" ]; then
+          command+=(--append)
+        fi
+        if [ "$INPUT_COMPOSE" = "true" ]; then
+          command+=(--compose)
+        fi
+
+        report="$("${command[@]}")"
+        delimiter="HEALTHCHECK_REPORT_$(date +%s%N)"
+        {
+          echo "report<<${delimiter}"
+          printf '%s\n' "$report"
+          echo "${delimiter}"
+        } >> "$GITHUB_OUTPUT"
+
+        {
+          echo "## Generated Docker health check"
+          echo
+          echo '~~~text'
+          printf '%s\n' "$report"
+          echo '~~~'
+          if [ "$INPUT_APPEND" = "true" ]; then
+            echo
+            echo "The Dockerfile was changed. Review the diff before committing it."
+          fi
+        } >> "$GITHUB_STEP_SUMMARY"
+
+        printf '%s\n' "$report"
