@@ -37,7 +37,7 @@ runs:
         INPUT_COMPOSE: ${{ inputs.compose }}
       run: |
         package_version="$(node -p "require('$GITHUB_ACTION_PATH/package.json').version")"
-        command=(npx --yes "@barissozudogru/healthcheck-gen@${package_version}" --dockerfile "$INPUT_DOCKERFILE")
+        command=(npm exec --yes --package="@barissozudogru/healthcheck-gen@${package_version}" -- healthcheck-gen --dockerfile "$INPUT_DOCKERFILE")
         if [ "$INPUT_APPEND" = "true" ]; then
           command+=(--append)
         fi

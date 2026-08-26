@@ -6,6 +6,16 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ---
 
+## [0.5.1] - 2026-08-26
+
+### Fixed
+
+- The GitHub Action now installs and invokes the pinned CLI binary explicitly.
+
+### Added
+
+- Command help now links directly to the source repository.
+
 ## [0.5.0] - 2026-08-26
 
 ### Added

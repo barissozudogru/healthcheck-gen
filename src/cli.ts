@@ -69,6 +69,9 @@ ${color("EXAMPLES", BOLD)}
   healthcheck-gen --json
   healthcheck-gen --none --append
   healthcheck-gen --interval 60s --timeout 10s --retries 5
+
+${color("SOURCE AND DOCUMENTATION", BOLD)}
+  https://github.com/barissozudogru/healthcheck-gen
 `);
 }
 

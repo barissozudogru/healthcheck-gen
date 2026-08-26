@@ -186,7 +186,7 @@ jobs:
       contents: read
     steps:
       - uses: actions/checkout@v4
-      - uses: barissozudogru/healthcheck-gen@v0.5.0
+      - uses: barissozudogru/healthcheck-gen@v0.5.1
         with:
           dockerfile: Dockerfile
 ```
