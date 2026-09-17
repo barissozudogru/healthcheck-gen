@@ -64,10 +64,22 @@ export function isMinimalImage(rawFrom: string): boolean {
 }
 
 export function parseDockerfile(content: string): DockerfileAnalysis {
-  const lines = content
-    .split("\n")
-    .map((l) => l.trim())
-    .filter((l) => l && !l.startsWith("#"));
+  // A trailing backslash continues the instruction on the next physical line,
+  // and CMD, ENTRYPOINT, and EXPOSE often carry the framework or the port on
+  // those later lines. Merge the parts first; testing instruction prefixes on
+  // the first line alone would miss them and fall back to a wrong guess.
+  const lines: string[] = [];
+  for (const raw of content.split("\n")) {
+    const line = raw.trim();
+    if (!line || line.startsWith("#")) continue;
+
+    const previous = lines[lines.length - 1];
+    if (previous !== undefined && previous.endsWith("\\")) {
+      lines[lines.length - 1] = `${previous.slice(0, -1).trimEnd()} ${line}`;
+    } else {
+      lines.push(line);
+    }
+  }
 
   // Track stages for multi-stage build support.
   // We only want analysis from the FINAL stage.
