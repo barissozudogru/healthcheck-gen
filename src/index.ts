@@ -281,6 +281,16 @@ function buildDockerfileInstruction(
   ].join("\n");
 }
 
+/**
+ * The compose block embeds the probe in a double-quoted YAML flow scalar, and
+ * the runtime-native probes (node -e "..." and python -c "...") carry double
+ * quotes of their own. An unescaped quote ends the scalar early, so backslashes
+ * and quotes are escaped here to keep the emitted file parseable.
+ */
+function escapeYamlDoubleQuoted(value: string): string {
+  return value.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
+}
+
 function buildComposeBlock(config: HealthcheckConfig, none = false): string {
   if (none) {
     return "healthcheck:\n  disable: true";
@@ -288,7 +298,7 @@ function buildComposeBlock(config: HealthcheckConfig, none = false): string {
 
   const lines = [
     "healthcheck:",
-    `  test: ["CMD-SHELL", "${config.test}"]`,
+    `  test: ["CMD-SHELL", "${escapeYamlDoubleQuoted(config.test)}"]`,
     `  interval: ${config.interval}`,
     `  timeout: ${config.timeout}`,
     `  start_period: ${config.startPeriod}`,
