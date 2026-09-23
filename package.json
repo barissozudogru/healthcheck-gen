@@ -1,6 +1,6 @@
 {
   "name": "@barissozudogru/healthcheck-gen",
-  "version": "0.5.2",
+  "version": "0.5.3",
   "description": "Generate Docker HEALTHCHECK instructions from Dockerfile analysis",
   "type": "module",
   "bin": {
