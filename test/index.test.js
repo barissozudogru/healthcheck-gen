@@ -19,3 +19,29 @@ test("avoids false positive base image matches for substring patterns", () => {
   assert.equal(parseDockerfile("FROM dragonfly:latest").baseImage, "unknown");
   assert.equal(parseDockerfile("FROM cargo:latest").baseImage, "unknown");
 });
+
+test("joins backslash continuations of CMD before detecting the framework", () => {
+  const dockerfile = [
+    "FROM node:22-slim",
+    "CMD node \\",
+    "  server.js \\",
+    "  --framework nestjs",
+  ].join("\n");
+
+  const analysis = parseDockerfile(dockerfile);
+
+  assert.equal(analysis.framework, "nestjs");
+  assert.deepEqual(analysis.rawCmd, ["node server.js --framework nestjs"]);
+});
+
+test("reads the port from a continued EXPOSE instruction", () => {
+  const analysis = parseDockerfile("FROM node:22\nEXPOSE \\\n  3000");
+  assert.equal(analysis.port, 3000);
+});
+
+test("captures all parts of a continued ENTRYPOINT instruction", () => {
+  const analysis = parseDockerfile(
+    'FROM python:3.12\nENTRYPOINT ["gunicorn",\\\n  "app.main:app"]'
+  );
+  assert.deepEqual(analysis.rawEntrypoint, ['["gunicorn", "app.main:app"]']);
+});
