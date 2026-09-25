@@ -141,7 +141,7 @@ export function parseDockerfile(content: string): DockerfileAnalysis {
 
 function detectBaseImage(fromValue: string): BaseImage {
   const lower = fromValue.toLowerCase();
-  const imageName = lower.split(":")[0].split("/").pop() ?? lower;
+  const imageName = lower.split("/").pop()?.split(":")[0] ?? lower;
 
   for (const [pattern, base] of Object.entries(BASE_IMAGE_PATTERNS)) {
     if (
