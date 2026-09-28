@@ -45,3 +45,15 @@ test("captures all parts of a continued ENTRYPOINT instruction", () => {
   );
   assert.deepEqual(analysis.rawEntrypoint, ['["gunicorn", "app.main:app"]']);
 });
+
+test("detects base images when the registry URL contains a port", () => {
+  assert.equal(
+    parseDockerfile("FROM localhost:5000/myorg/python:3.11-slim").baseImage,
+    "python"
+  );
+  assert.equal(
+    parseDockerfile("FROM registry.example.com:8443/company/node:20").baseImage,
+    "node"
+  );
+});
+
