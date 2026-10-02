@@ -154,8 +154,8 @@ function parseArgs(argv: string[]): ParsedArgs {
         );
         process.exit(1);
       }
-      const parsed = parseInt(next, 10);
-      if (isNaN(parsed) || parsed < 1) {
+      const parsed = Number(next);
+      if (!Number.isSafeInteger(parsed) || parsed < 1) {
         console.error(
           `${color("error", RED, BOLD)}: --retries must be a positive integer`
         );
