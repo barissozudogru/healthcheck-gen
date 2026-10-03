@@ -169,9 +169,12 @@ function detectPort(
     return null;
   }
 
-  const first = exposeLines[0].split(/[\s/]/)[0];
-  const parsed = parseInt(first, 10);
-  return isNaN(parsed) ? null : parsed;
+  const first = exposeLines[0].trim().split(/\s+/)[0];
+  const match = /^(\d+)(?:\/(?:tcp|udp))?$/i.exec(first);
+  if (!match) return null;
+
+  const parsed = Number(match[1]);
+  return parsed >= 1 && parsed <= 65535 ? parsed : null;
 }
 
 function detectFramework(

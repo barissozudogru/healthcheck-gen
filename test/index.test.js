@@ -39,6 +39,11 @@ test("reads the port from a continued EXPOSE instruction", () => {
   assert.equal(analysis.port, 3000);
 });
 
+test("does not partially parse malformed EXPOSE ports", () => {
+  const analysis = parseDockerfile("FROM node:22\nEXPOSE 8080oops");
+  assert.equal(analysis.port, null);
+});
+
 test("captures all parts of a continued ENTRYPOINT instruction", () => {
   const analysis = parseDockerfile(
     'FROM python:3.12\nENTRYPOINT ["gunicorn",\\\n  "app.main:app"]'
@@ -56,4 +61,3 @@ test("detects base images when the registry URL contains a port", () => {
     "node"
   );
 });
-
