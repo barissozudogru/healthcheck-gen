@@ -14,3 +14,14 @@ test("retries rejects values that are not positive integers", () => {
     assert.match(result.stderr, /--retries must be a positive integer/);
   }
 });
+
+test("duration overrides reject values outside Docker duration syntax", () => {
+  const result = spawnSync(
+    process.execPath,
+    ["dist/cli.js", "--timeout", "banana", "--dockerfile", "package.json", "--json"],
+    { cwd: process.cwd(), encoding: "utf8" }
+  );
+
+  assert.equal(result.status, 1);
+  assert.match(result.stderr, /--timeout must be a valid Docker duration/);
+});

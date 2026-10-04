@@ -1,6 +1,10 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { parseDockerfile } from "../dist/index.js";
+import {
+  analyzeDockerfile,
+  generateFromContent,
+  parseDockerfile,
+} from "../dist/index.js";
 
 test("detects supported base images correctly", () => {
   assert.equal(parseDockerfile("FROM node:20-alpine").baseImage, "node");
@@ -68,4 +72,35 @@ test("detects base images when the registry URL contains a port", () => {
     parseDockerfile("FROM registry.example.com:8443/company/node:20").baseImage,
     "node"
   );
+});
+
+test("rejects invalid and overflowing healthcheck overrides from the public API", () => {
+  for (const overrides of [
+    { interval: "banana" },
+    { timeout: "banana" },
+    { startPeriod: "1mwat" },
+    { retries: 0 },
+    { timeout: "9223372036.854775808s" },
+  ]) {
+    assert.throws(() => generateFromContent("FROM node:22", overrides), {
+      message: /must be|positive integer/,
+    });
+    assert.throws(() => analyzeDockerfile("package.json", overrides), {
+      message: /must be|positive integer/,
+    });
+  }
+});
+
+test("accepts compound Docker durations within the supported range", () => {
+  const result = generateFromContent("FROM node:22", {
+    interval: "1m30s",
+    timeout: ".5s",
+    startPeriod: "2500ms",
+    retries: 5,
+  });
+
+  assert.equal(result.healthcheck.interval, "1m30s");
+  assert.equal(result.healthcheck.timeout, ".5s");
+  assert.equal(result.healthcheck.startPeriod, "2500ms");
+  assert.equal(result.healthcheck.retries, 5);
 });

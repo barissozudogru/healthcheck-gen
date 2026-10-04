@@ -7,6 +7,7 @@ import type {
   GeneratedHealthcheck,
   HealthcheckConfig,
 } from "./types.js";
+import { validateHealthcheckOverrides } from "./validation.js";
 
 export type {
   BaseImage,
@@ -216,6 +217,8 @@ function buildHealthcheckConfig(
   analysis: DockerfileAnalysis,
   overrides: HealthcheckOverrides = {}
 ): HealthcheckConfig {
+  validateHealthcheckOverrides(overrides);
+
   const defaults: Omit<HealthcheckConfig, "test"> = {
     interval: overrides.interval ?? "30s",
     timeout: overrides.timeout ?? "5s",
