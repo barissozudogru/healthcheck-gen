@@ -169,12 +169,15 @@ function detectPort(
     return null;
   }
 
-  const first = exposeLines[0].trim().split(/\s+/)[0];
-  const match = /^(\d+)(?:\/(?:tcp|udp))?$/i.exec(first);
-  if (!match) return null;
+  for (const token of exposeLines.flatMap((line) => line.trim().split(/\s+/))) {
+    const match = /^(\d+)(?:\/(tcp|udp))?$/i.exec(token);
+    if (!match || match[2]?.toLowerCase() === "udp") continue;
 
-  const parsed = Number(match[1]);
-  return parsed >= 1 && parsed <= 65535 ? parsed : null;
+    const parsed = Number(match[1]);
+    if (parsed >= 1 && parsed <= 65535) return parsed;
+  }
+
+  return null;
 }
 
 function detectFramework(
