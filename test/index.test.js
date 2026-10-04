@@ -22,6 +22,7 @@ test("avoids false positive base image matches for substring patterns", () => {
   assert.equal(parseDockerfile("FROM django:4.2").baseImage, "unknown");
   assert.equal(parseDockerfile("FROM dragonfly:latest").baseImage, "unknown");
   assert.equal(parseDockerfile("FROM cargo:latest").baseImage, "unknown");
+  assert.equal(parseDockerfile("FROM pythonista:latest").baseImage, "unknown");
 });
 
 test("joins backslash continuations of CMD before detecting the framework", () => {
