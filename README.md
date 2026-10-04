@@ -216,6 +216,20 @@ Or append directly during a Docker build preparation step:
 | `0` | Success |
 | `1` | Dockerfile not found, parse error, or invalid arguments |
 
+## Development and support
+
+Report problems through [GitHub issues](https://github.com/barissozudogru/healthcheck-gen/issues). See [CONTRIBUTING.md](./CONTRIBUTING.md) for the contribution workflow. For vulnerabilities, follow [SECURITY.md](./SECURITY.md).
+
+To build and test a source checkout with Node.js 22:
+
+```bash
+npm ci
+npm test
+npm run build
+```
+
+The default branch can contain changes that have not yet been published to npm.
+
 ## License
 
 [MIT](./LICENSE)
