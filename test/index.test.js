@@ -75,6 +75,20 @@ test("captures all parts of a continued ENTRYPOINT instruction", () => {
   assert.deepEqual(analysis.rawEntrypoint, ['["gunicorn", "app.main:app"]']);
 });
 
+test("uses only the effective CMD and ENTRYPOINT in a stage", () => {
+  const analysis = parseDockerfile([
+    "FROM python:3.12",
+    'CMD ["uvicorn", "app:app"]',
+    'CMD ["python", "server.py"]',
+    'ENTRYPOINT ["gunicorn", "app:app"]',
+    'ENTRYPOINT ["python", "server.py"]',
+  ].join("\n"));
+
+  assert.equal(analysis.framework, "unknown");
+  assert.deepEqual(analysis.rawCmd, ['["python", "server.py"]']);
+  assert.deepEqual(analysis.rawEntrypoint, ['["python", "server.py"]']);
+});
+
 test("detects base images when the registry URL contains a port", () => {
   assert.equal(
     parseDockerfile("FROM localhost:5000/myorg/python:3.11-slim").baseImage,

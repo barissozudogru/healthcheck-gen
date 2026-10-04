@@ -113,9 +113,11 @@ export function parseDockerfile(content: string): DockerfileAnalysis {
     } else if (upper.startsWith("EXPOSE ")) {
       stageExpose.push(line.slice(7).trim());
     } else if (upper.startsWith("CMD ")) {
-      stageCmd.push(line.slice(4).trim());
+      // Docker uses only the last CMD in a stage.
+      stageCmd = [line.slice(4).trim()];
     } else if (upper.startsWith("ENTRYPOINT ")) {
-      stageEntrypoint.push(line.slice(11).trim());
+      // Docker uses only the last ENTRYPOINT in a stage.
+      stageEntrypoint = [line.slice(11).trim()];
     }
   }
 

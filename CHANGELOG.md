@@ -11,6 +11,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 ### Fixed
 
 - Framework detection no longer matches names embedded in underscore-separated commands.
+- Framework detection now uses only the effective CMD and ENTRYPOINT instructions in each stage.
 
 ## [0.5.1] - 2026-08-26
 
