@@ -1,7 +1,10 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { join } from "node:path";
 import {
   analyzeDockerfile,
+  appendHealthcheckToDockerfile,
   generateFromContent,
   parseDockerfile,
 } from "../dist/index.js";
@@ -15,6 +18,42 @@ test("detects supported base images correctly", () => {
   assert.equal(parseDockerfile("FROM postgres:15-alpine").baseImage, "postgres");
   assert.equal(parseDockerfile("FROM redis:7-alpine").baseImage, "redis");
   assert.equal(parseDockerfile("FROM nginx:alpine").baseImage, "nginx");
+});
+
+test("accepts tabs between Dockerfile instructions and their arguments", () => {
+  const analysis = parseDockerfile("FROM\tnode:22\nEXPOSE\t8080");
+
+  assert.equal(analysis.baseImage, "node");
+  assert.equal(analysis.port, 8080);
+  assert.equal(analysis.rawFrom, "node:22");
+  assert.deepEqual(analysis.rawExpose, ["8080"]);
+});
+
+test("preserves earlier stage healthchecks when FROM uses a tab", () => {
+  const directory = mkdtempSync("./.append-test-");
+  const dockerfile = join(directory, "Dockerfile");
+
+  try {
+    writeFileSync(
+      dockerfile,
+      [
+        "FROM\tnode:22 AS builder",
+        "HEALTHCHECK CMD curl builder",
+        "RUN npm run build",
+        "FROM\tnode:22",
+        "HEALTHCHECK CMD curl final",
+      ].join("\n")
+    );
+
+    appendHealthcheckToDockerfile(dockerfile, "HEALTHCHECK CMD curl replacement");
+
+    const updated = readFileSync(dockerfile, "utf8");
+    assert.match(updated, /HEALTHCHECK CMD curl builder/);
+    assert.doesNotMatch(updated, /HEALTHCHECK CMD curl final/);
+    assert.match(updated, /HEALTHCHECK CMD curl replacement/);
+  } finally {
+    rmSync(directory, { recursive: true, force: true });
+  }
 });
 
 test("avoids false positive base image matches for substring patterns", () => {
