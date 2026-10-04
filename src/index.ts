@@ -95,9 +95,13 @@ export function parseDockerfile(content: string): DockerfileAnalysis {
   let stageEntrypoint: string[] = [];
 
   for (const line of lines) {
-    const upper = line.toUpperCase();
+    const instructionMatch = /^([a-z]+)(?:\s+|$)/i.exec(line);
+    const instruction = instructionMatch?.[1].toUpperCase();
+    const argumentsText = instructionMatch
+      ? line.slice(instructionMatch[0].length).trim()
+      : "";
 
-    if (upper.startsWith("FROM ")) {
+    if (instruction === "FROM") {
       // Flush previous stage data (ignored; only the last stage is kept).
       stageExpose = [];
       stageCmd = [];
@@ -105,19 +109,18 @@ export function parseDockerfile(content: string): DockerfileAnalysis {
 
       // Strip --flag=value tokens (e.g. --platform=linux/amd64) before
       // extracting the image name.
-      currentStageFrom = line
-        .slice(5)
+      currentStageFrom = argumentsText
         .replace(/--\w+=\S+\s*/g, "")
         .trim()
         .split(/\s+/)[0];
-    } else if (upper.startsWith("EXPOSE ")) {
-      stageExpose.push(line.slice(7).trim());
-    } else if (upper.startsWith("CMD ")) {
+    } else if (instruction === "EXPOSE") {
+      stageExpose.push(argumentsText);
+    } else if (instruction === "CMD") {
       // Docker uses only the last CMD in a stage.
-      stageCmd = [line.slice(4).trim()];
-    } else if (upper.startsWith("ENTRYPOINT ")) {
+      stageCmd = [argumentsText];
+    } else if (instruction === "ENTRYPOINT") {
       // Docker uses only the last ENTRYPOINT in a stage.
-      stageEntrypoint = [line.slice(11).trim()];
+      stageEntrypoint = [argumentsText];
     }
   }
 
@@ -488,7 +491,7 @@ export function appendHealthcheckToDockerfile(
   // Find the index of the last FROM line to locate the final stage boundary.
   let lastFromIndex = -1;
   for (let i = 0; i < lines.length; i++) {
-    if (lines[i].trim().toUpperCase().startsWith("FROM ")) {
+    if (/^FROM(?:\s|$)/i.test(lines[i].trim())) {
       lastFromIndex = i;
     }
   }
