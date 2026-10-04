@@ -238,7 +238,7 @@ function buildHealthcheckConfig(
         return `node -e "fetch('${url}').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"`;
       }
       if (analysis.baseImage === "python") {
-        return `python -c "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('${url}', timeout=5).status == 200 else 1)"`;
+        return `python -c "import urllib.request,sys; response=urllib.request.urlopen('${url}', timeout=5); sys.exit(0 if 200 <= response.status < 300 else 1)"`;
       }
       // No known runtime to fall back on. curl is still the most likely thing
       // to be installed deliberately, and the CLI warns that it is missing.

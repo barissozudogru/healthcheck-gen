@@ -35,6 +35,11 @@ test("python slim uses the python runtime", () => {
   assert.ok(probe.includes("http://localhost:8000/health"));
 });
 
+test("python slim accepts all successful HTTP status codes", () => {
+  const probe = probeFor(PY_SLIM);
+  assert.match(probe, /200 <= response\.status < 300/);
+});
+
 test("full images keep curl, which they ship", () => {
   assert.match(probeFor(NODE_FULL), /^curl -f /);
 });
