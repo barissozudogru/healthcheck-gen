@@ -25,6 +25,17 @@ test("avoids false positive base image matches for substring patterns", () => {
   assert.equal(parseDockerfile("FROM pythonista:latest").baseImage, "unknown");
 });
 
+test("avoids false positive framework matches inside longer words", () => {
+  assert.equal(
+    parseDockerfile('FROM scratch\nCMD ["./expressive-server"]').framework,
+    "unknown"
+  );
+  assert.equal(
+    parseDockerfile('FROM scratch\nCMD ["./express_server"]').framework,
+    "unknown"
+  );
+});
+
 test("joins backslash continuations of CMD before detecting the framework", () => {
   const dockerfile = [
     "FROM node:22-slim",
