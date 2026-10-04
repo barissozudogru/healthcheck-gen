@@ -44,6 +44,14 @@ test("does not partially parse malformed EXPOSE ports", () => {
   assert.equal(analysis.port, null);
 });
 
+test("does not use UDP-only EXPOSE ports for an HTTP healthcheck", () => {
+  assert.equal(parseDockerfile("FROM node:22\nEXPOSE 5353/udp").port, null);
+  assert.equal(
+    parseDockerfile("FROM node:22\nEXPOSE 5353/udp 8080/tcp").port,
+    8080
+  );
+});
+
 test("captures all parts of a continued ENTRYPOINT instruction", () => {
   const analysis = parseDockerfile(
     'FROM python:3.12\nENTRYPOINT ["gunicorn",\\\n  "app.main:app"]'
