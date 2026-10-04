@@ -6,6 +6,12 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ---
 
+## [Unreleased]
+
+### Fixed
+
+- Framework detection no longer matches names embedded in underscore-separated commands.
+
 ## [0.5.1] - 2026-08-26
 
 ### Fixed
