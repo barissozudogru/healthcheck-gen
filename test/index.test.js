@@ -69,3 +69,12 @@ test("detects base images when the registry URL contains a port", () => {
     "node"
   );
 });
+
+test("detects base images referenced by digest", () => {
+  assert.equal(
+    parseDockerfile(
+      "FROM node@sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    ).baseImage,
+    "node"
+  );
+});
