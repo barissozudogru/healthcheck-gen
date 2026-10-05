@@ -56,6 +56,26 @@ test("preserves earlier stage healthchecks when FROM uses a tab", () => {
   }
 });
 
+test("does not remove longer instruction names beginning with HEALTHCHECK", () => {
+  const directory = mkdtempSync("./.append-boundary-test-");
+  const dockerfile = join(directory, "Dockerfile");
+
+  try {
+    writeFileSync(
+      dockerfile,
+      ["FROM node:22", "HEALTHCHECKER CMD echo keep"].join("\n")
+    );
+
+    appendHealthcheckToDockerfile(dockerfile, "HEALTHCHECK CMD replacement");
+
+    const updated = readFileSync(dockerfile, "utf8");
+    assert.match(updated, /HEALTHCHECKER CMD echo keep/);
+    assert.match(updated, /HEALTHCHECK CMD replacement/);
+  } finally {
+    rmSync(directory, { recursive: true, force: true });
+  }
+});
+
 test("avoids false positive base image matches for substring patterns", () => {
   assert.equal(parseDockerfile("FROM mongo:6.0").baseImage, "unknown");
   assert.equal(parseDockerfile("FROM django:4.2").baseImage, "unknown");

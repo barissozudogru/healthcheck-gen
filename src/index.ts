@@ -515,7 +515,7 @@ export function appendHealthcheckToDockerfile(
       }
       continue;
     }
-    if (line.trim().toUpperCase().startsWith("HEALTHCHECK")) {
+    if (/^HEALTHCHECK(?:\s|$)/i.test(line.trim())) {
       // Start skipping; if this line itself continues, set the flag.
       if (line.trimEnd().endsWith("\\")) {
         skipContinuation = true;
