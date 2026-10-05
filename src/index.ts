@@ -60,8 +60,17 @@ export function isAlpineImage(rawFrom: string): boolean {
  * Alpine has wget from busybox.
  */
 export function isMinimalImage(rawFrom: string): boolean {
-  const lower = rawFrom.toLowerCase();
-  return lower.includes("slim") || lower.includes("distroless");
+  const lower = rawFrom.toLowerCase().split("@", 1)[0];
+  const pathParts = lower.split("/");
+  const imageName = pathParts[pathParts.length - 1] ?? lower;
+  const tagSeparator = imageName.indexOf(":");
+  const tag = tagSeparator === -1 ? "" : imageName.slice(tagSeparator + 1);
+  const hasSlimTag = tag.split("-").includes("slim");
+  const hasDistrolessPath = pathParts.some(
+    (part) => part === "distroless" || part.startsWith("distroless-")
+  );
+
+  return hasSlimTag || hasDistrolessPath;
 }
 
 export function parseDockerfile(content: string): DockerfileAnalysis {
