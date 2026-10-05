@@ -29,6 +29,12 @@ test("node slim uses the node runtime", () => {
   assert.ok(probe.includes("catch"), "a network error must exit non-zero, not throw");
 });
 
+test("distroless node images use the node runtime", () => {
+  const probe = probeFor("FROM gcr.io/distroless/nodejs22\nEXPOSE 3000");
+  assert.match(probe, /^node -e /);
+  assert.ok(!probe.includes("curl"));
+});
+
 test("python slim uses the python runtime", () => {
   const probe = probeFor(PY_SLIM);
   assert.match(probe, /^python -c /);
