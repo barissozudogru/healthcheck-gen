@@ -85,6 +85,8 @@ export function parseDockerfile(content: string): DockerfileAnalysis {
   // Track stages for multi-stage build support.
   // We only want analysis from the FINAL stage.
   let currentStageFrom = "";
+  const globalArgs: Record<string, string> = Object.create(null);
+  let seenFrom = false;
   const rawExpose: string[] = [];
   const rawCmd: string[] = [];
   const rawEntrypoint: string[] = [];
@@ -101,7 +103,15 @@ export function parseDockerfile(content: string): DockerfileAnalysis {
       ? line.slice(instructionMatch[0].length).trim()
       : "";
 
-    if (instruction === "FROM") {
+    if (instruction === "ARG" && !seenFrom) {
+      const argMatch = /^([A-Za-z_][A-Za-z0-9_]*)(?:=(.*))?$/.exec(
+        argumentsText
+      );
+      if (argMatch?.[2] !== undefined) {
+        globalArgs[argMatch[1]] = argMatch[2];
+      }
+    } else if (instruction === "FROM") {
+      seenFrom = true;
       // Flush previous stage data (ignored; only the last stage is kept).
       stageExpose = [];
       stageCmd = [];
@@ -109,10 +119,13 @@ export function parseDockerfile(content: string): DockerfileAnalysis {
 
       // Strip --flag=value tokens (e.g. --platform=linux/amd64) before
       // extracting the image name.
-      currentStageFrom = argumentsText
+      currentStageFrom = resolveFromArgs(
+        argumentsText
         .replace(/--\w+=\S+\s*/g, "")
         .trim()
-        .split(/\s+/)[0];
+        .split(/\s+/)[0],
+        globalArgs
+      );
     } else if (instruction === "EXPOSE") {
       stageExpose.push(argumentsText);
     } else if (instruction === "CMD") {
@@ -143,6 +156,16 @@ export function parseDockerfile(content: string): DockerfileAnalysis {
     rawCmd,
     rawEntrypoint,
   };
+}
+
+function resolveFromArgs(
+  image: string,
+  globalArgs: Record<string, string>
+): string {
+  return image.replace(/\$\{([A-Za-z_][A-Za-z0-9_]*)\}|\$([A-Za-z_][A-Za-z0-9_]*)/g,
+    (match, bracedName: string, plainName: string) =>
+      globalArgs[bracedName ?? plainName] ?? match
+  );
 }
 
 function hasLineContinuation(line: string): boolean {
