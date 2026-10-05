@@ -10,7 +10,10 @@ import {
   isMinimalImage,
 } from "./index.js";
 import type { HealthcheckOverrides } from "./index.js";
-import { isDockerDuration } from "./validation.js";
+import {
+  isDockerDuration,
+  isPositiveDockerDuration,
+} from "./validation.js";
 
 const USE_COLOR = process.stdout.isTTY === true || process.stderr.isTTY === true;
 
@@ -135,7 +138,7 @@ function parseArgs(argv: string[]): ParsedArgs {
         );
         process.exit(1);
       }
-      if (!isDockerDuration(next)) {
+      if (!isPositiveDockerDuration(next)) {
         console.error(
           `${color("error", RED, BOLD)}: --interval must be a valid Docker duration`
         );
@@ -151,7 +154,7 @@ function parseArgs(argv: string[]): ParsedArgs {
         );
         process.exit(1);
       }
-      if (!isDockerDuration(next)) {
+      if (!isPositiveDockerDuration(next)) {
         console.error(
           `${color("error", RED, BOLD)}: --timeout must be a valid Docker duration`
         );

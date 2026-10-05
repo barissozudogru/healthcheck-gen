@@ -39,6 +39,10 @@ export function isDockerDuration(value: string): boolean {
   );
 }
 
+export function isPositiveDockerDuration(value: string): boolean {
+  return isDockerDuration(value) && /[1-9]/.test(value);
+}
+
 export function validateHealthcheckOverrides(
   overrides: HealthcheckOverrides
 ): void {
@@ -49,7 +53,12 @@ export function validateHealthcheckOverrides(
   ];
 
   for (const [name, value] of durations) {
-    if (value !== undefined && !isDockerDuration(value)) {
+    const mustBePositive = name === "interval" || name === "timeout";
+    if (
+      value !== undefined &&
+      (!isDockerDuration(value) ||
+        (mustBePositive && !isPositiveDockerDuration(value)))
+    ) {
       throw new Error(`${name} must be a valid Docker duration`);
     }
   }

@@ -25,3 +25,20 @@ test("duration overrides reject values outside Docker duration syntax", () => {
   assert.equal(result.status, 1);
   assert.match(result.stderr, /--timeout must be a valid Docker duration/);
 });
+
+test("interval and timeout reject zero durations during CLI parsing", () => {
+  for (const [option, value] of [
+    ["--interval", "0s"],
+    ["--timeout", "0s"],
+  ]) {
+    const result = spawnSync(
+      process.execPath,
+      ["dist/cli.js", option, value, "--dockerfile", "package.json", "--json"],
+      { cwd: process.cwd(), encoding: "utf8" }
+    );
+
+    assert.equal(result.status, 1, `accepted ${option} ${value}`);
+    assert.match(result.stderr, new RegExp(`${option} must be a valid Docker duration`));
+    assert.doesNotMatch(result.stderr, /Failed to parse Dockerfile/);
+  }
+});
