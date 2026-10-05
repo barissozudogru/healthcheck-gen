@@ -142,7 +142,9 @@ test("detects base images when the registry URL contains a port", () => {
 test("rejects invalid and overflowing healthcheck overrides from the public API", () => {
   for (const overrides of [
     { interval: "banana" },
+    { interval: "0s" },
     { timeout: "banana" },
+    { timeout: "0s" },
     { startPeriod: "1mwat" },
     { retries: 0 },
     { timeout: "9223372036.854775808s" },
