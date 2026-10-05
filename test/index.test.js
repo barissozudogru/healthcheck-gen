@@ -20,6 +20,30 @@ test("detects supported base images correctly", () => {
   assert.equal(parseDockerfile("FROM nginx:alpine").baseImage, "nginx");
 });
 
+test("resolves global ARG values used in FROM", () => {
+  const analysis = parseDockerfile([
+    "ARG NODE_VERSION=22",
+    "FROM node:${NODE_VERSION}-alpine",
+    "EXPOSE 3000",
+  ].join("\n"));
+
+  assert.equal(analysis.baseImage, "node");
+  assert.equal(analysis.rawFrom, "node:22-alpine");
+
+  assert.equal(
+    parseDockerfile("FROM node:$UNDECLARED").rawFrom,
+    "node:$UNDECLARED"
+  );
+  assert.equal(
+    parseDockerfile("ARG __proto__=22\nFROM node:${__proto__}").rawFrom,
+    "node:22"
+  );
+  assert.equal(
+    parseDockerfile("ARG NODE_VERSION=22\nFROM node:$NODE_VERSION").rawFrom,
+    "node:22"
+  );
+});
+
 test("accepts tabs between Dockerfile instructions and their arguments", () => {
   const analysis = parseDockerfile("FROM\tnode:22\nEXPOSE\t8080");
 
