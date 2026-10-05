@@ -154,6 +154,7 @@ function detectBaseImage(fromValue: string): BaseImage {
       imageName === pattern ||
       imageName.startsWith(`${pattern}-`) ||
       imageName.startsWith(`${pattern}_`) ||
+      (pattern === "node" && /^nodejs\d/.test(imageName)) ||
       (pattern === "python" && /^python\d/.test(imageName))
     ) {
       return base;
