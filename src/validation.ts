@@ -12,6 +12,12 @@ const DURATION_UNITS: Record<string, bigint> = {
 };
 
 export function isDockerDuration(value: string): boolean {
+  return parseDockerDuration(value) !== null;
+}
+
+function parseDockerDuration(
+  value: string
+): { totalNumerator: bigint; totalDenominator: bigint } | null {
   const durationPart = /(\d+(?:\.\d+)?|\.\d+)(ns|us|µs|ms|s|m|h)/g;
   let totalNumerator = 0n;
   let totalDenominator = 1n;
@@ -19,7 +25,7 @@ export function isDockerDuration(value: string): boolean {
   let match: RegExpExecArray | null;
 
   while ((match = durationPart.exec(value)) !== null) {
-    if (match.index !== position) return false;
+    if (match.index !== position) return null;
 
     const [number, unit] = match.slice(1);
     const [whole, fraction = ""] = number.split(".");
@@ -32,15 +38,20 @@ export function isDockerDuration(value: string): boolean {
     position = durationPart.lastIndex;
   }
 
-  return (
-    position === value.length &&
-    position > 0 &&
-    totalNumerator <= MAX_DURATION_NANOSECONDS * totalDenominator
-  );
+  if (
+    position !== value.length ||
+    position === 0 ||
+    totalNumerator > MAX_DURATION_NANOSECONDS * totalDenominator
+  ) {
+    return null;
+  }
+
+  return { totalNumerator, totalDenominator };
 }
 
 export function isPositiveDockerDuration(value: string): boolean {
-  return isDockerDuration(value) && /[1-9]/.test(value);
+  const duration = parseDockerDuration(value);
+  return duration !== null && duration.totalNumerator >= duration.totalDenominator;
 }
 
 export function validateHealthcheckOverrides(

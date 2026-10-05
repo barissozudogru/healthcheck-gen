@@ -158,6 +158,17 @@ test("rejects invalid and overflowing healthcheck overrides from the public API"
   }
 });
 
+test("rejects positive durations that round down to zero nanoseconds", () => {
+  for (const overrides of [
+    { interval: "0.0000000001s" },
+    { timeout: "0.1ns" },
+  ]) {
+    assert.throws(() => generateFromContent("FROM node:22", overrides), {
+      message: /must be a valid Docker duration/,
+    });
+  }
+});
+
 test("accepts compound Docker durations within the supported range", () => {
   const result = generateFromContent("FROM node:22", {
     interval: "1m30s",
