@@ -75,7 +75,7 @@ export function parseDockerfile(content: string): DockerfileAnalysis {
     if (!line || line.startsWith("#")) continue;
 
     const previous = lines[lines.length - 1];
-    if (previous !== undefined && previous.endsWith("\\")) {
+    if (previous !== undefined && hasLineContinuation(previous)) {
       lines[lines.length - 1] = `${previous.slice(0, -1).trimEnd()} ${line}`;
     } else {
       lines.push(line);
@@ -143,6 +143,17 @@ export function parseDockerfile(content: string): DockerfileAnalysis {
     rawCmd,
     rawEntrypoint,
   };
+}
+
+function hasLineContinuation(line: string): boolean {
+  const trimmed = line.trimEnd();
+  let trailingBackslashes = 0;
+
+  for (let i = trimmed.length - 1; i >= 0 && trimmed[i] === "\\"; i--) {
+    trailingBackslashes++;
+  }
+
+  return trailingBackslashes % 2 === 1;
 }
 
 function detectBaseImage(fromValue: string): BaseImage {
@@ -510,14 +521,14 @@ export function appendHealthcheckToDockerfile(
     }
     if (skipContinuation) {
       // Keep skipping until a line without a trailing backslash is consumed.
-      if (!line.trimEnd().endsWith("\\")) {
+      if (!hasLineContinuation(line)) {
         skipContinuation = false;
       }
       continue;
     }
     if (/^HEALTHCHECK(?:\s|$)/i.test(line.trim())) {
       // Start skipping; if this line itself continues, set the flag.
-      if (line.trimEnd().endsWith("\\")) {
+      if (hasLineContinuation(line)) {
         skipContinuation = true;
       }
       continue;

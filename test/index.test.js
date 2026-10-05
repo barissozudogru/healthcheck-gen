@@ -76,6 +76,30 @@ test("does not remove longer instruction names beginning with HEALTHCHECK", () =
   }
 });
 
+test("preserves instructions after a HEALTHCHECK ending with an escaped backslash", () => {
+  const directory = mkdtempSync("./.append-escaped-backslash-test-");
+  const dockerfile = join(directory, "Dockerfile");
+
+  try {
+    writeFileSync(
+      dockerfile,
+      [
+        "FROM node:22",
+        "HEALTHCHECK CMD echo one \\\\",
+        "EXPOSE 8080",
+      ].join("\n")
+    );
+
+    appendHealthcheckToDockerfile(dockerfile, "HEALTHCHECK CMD echo replacement");
+
+    const updated = readFileSync(dockerfile, "utf8");
+    assert.match(updated, /EXPOSE 8080/);
+    assert.match(updated, /HEALTHCHECK CMD echo replacement/);
+  } finally {
+    rmSync(directory, { recursive: true, force: true });
+  }
+});
+
 test("avoids false positive base image matches for substring patterns", () => {
   assert.equal(parseDockerfile("FROM mongo:6.0").baseImage, "unknown");
   assert.equal(parseDockerfile("FROM django:4.2").baseImage, "unknown");
@@ -112,6 +136,17 @@ test("joins backslash continuations of CMD before detecting the framework", () =
 test("reads the port from a continued EXPOSE instruction", () => {
   const analysis = parseDockerfile("FROM node:22\nEXPOSE \\\n  3000");
   assert.equal(analysis.port, 3000);
+});
+
+test("does not continue lines ending with an escaped backslash", () => {
+  const analysis = parseDockerfile([
+    "FROM node:22",
+    "CMD echo one \\\\",
+    "EXPOSE 8080",
+  ].join("\n"));
+
+  assert.deepEqual(analysis.rawCmd, ["echo one \\\\"]);
+  assert.equal(analysis.port, 8080);
 });
 
 test("does not partially parse malformed EXPOSE ports", () => {
