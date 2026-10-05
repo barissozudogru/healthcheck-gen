@@ -10,6 +10,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ### Fixed
 
+- Dockerfile appending now preserves instructions after a HEALTHCHECK ending with an escaped backslash.
 - CLI interval and timeout overrides now reject zero durations during argument parsing.
 - Dockerfile instructions now parse correctly when tabs separate instructions from their arguments.
 - Framework detection no longer matches names embedded in underscore-separated commands.
