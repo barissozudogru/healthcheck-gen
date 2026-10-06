@@ -46,8 +46,21 @@ const FRAMEWORK_PATTERNS: Record<string, Framework> = {
 
 /** Returns true when the FROM image name suggests an Alpine-based distribution. */
 export function isAlpineImage(rawFrom: string): boolean {
-  const lower = rawFrom.toLowerCase();
-  return lower.includes("alpine");
+  const lower = rawFrom.toLowerCase().split("@", 1)[0];
+  const imageReference = lower.split("/").pop() ?? lower;
+  const tagSeparator = imageReference.indexOf(":");
+  const imageName =
+    tagSeparator === -1
+      ? imageReference
+      : imageReference.slice(0, tagSeparator);
+  const tag =
+    tagSeparator === -1 ? "" : imageReference.slice(tagSeparator + 1);
+
+  if (imageName === "alpine") return true;
+
+  return tag
+    .split("-")
+    .some((part) => part === "alpine" || /^alpine(?:\d|\.)/.test(part));
 }
 
 /**
