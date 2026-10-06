@@ -10,6 +10,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ### Fixed
 
+- Alpine probe detection now ignores registry path names and Docker image digests.
 - Global Dockerfile ARG values used in FROM images no longer resolve inherited object properties.
 - Dockerfile appending now preserves instructions after a HEALTHCHECK ending with an escaped backslash.
 - CLI interval and timeout overrides now reject zero durations during argument parsing.

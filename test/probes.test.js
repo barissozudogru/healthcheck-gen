@@ -54,6 +54,29 @@ test("alpine keeps wget, which busybox provides", () => {
   assert.match(probeFor(NODE_ALPINE), /^wget -q --spider /);
 });
 
+test("registry paths containing alpine do not select the Alpine probe", () => {
+  assert.match(
+    probeFor("FROM registry.example.com/alpine-images/node:22\nEXPOSE 3000"),
+    /^curl -f /
+  );
+});
+
+test("registry-qualified Alpine tags select the Alpine probe", () => {
+  assert.match(
+    probeFor("FROM registry.example.com/library/node:22-alpine\nEXPOSE 3000"),
+    /^wget -q --spider /
+  );
+});
+
+test("digest-qualified Alpine references select the Alpine probe", () => {
+  assert.match(
+    probeFor(
+      "FROM registry.example.com/library/node:22-alpine@sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\nEXPOSE 3000"
+    ),
+    /^wget -q --spider /
+  );
+});
+
 test("isMinimalImage recognises slim and distroless", () => {
   assert.equal(isMinimalImage("node:22-slim"), true);
   assert.equal(isMinimalImage("python:3.12-slim"), true);
