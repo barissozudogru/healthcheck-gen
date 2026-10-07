@@ -249,7 +249,11 @@ function detectFramework(
   fromValue: string,
   baseImage: BaseImage
 ): Framework {
-  const allText = [...cmdLines, ...entrypointLines, fromValue]
+  // Registry namespaces are not application framework hints. Only inspect the
+  // final image reference component so a path such as /express/python does not
+  // misclassify an otherwise ordinary Python image.
+  const imageReference = fromValue.split("/").pop() ?? fromValue;
+  const allText = [...cmdLines, ...entrypointLines, imageReference]
     .join(" ")
     .toLowerCase();
 

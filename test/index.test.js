@@ -144,6 +144,13 @@ test("avoids false positive framework matches inside longer words", () => {
   );
 });
 
+test("ignores framework names in registry namespaces", () => {
+  assert.equal(
+    parseDockerfile("FROM registry.example.com/express/python:3.12").framework,
+    "unknown"
+  );
+});
+
 test("joins backslash continuations of CMD before detecting the framework", () => {
   const dockerfile = [
     "FROM node:22-slim",
