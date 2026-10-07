@@ -3,7 +3,7 @@ import { spawnSync } from "node:child_process";
 import test from "node:test";
 
 test("retries rejects values that are not positive integers", () => {
-  for (const retries of ["3oops", "1.5"]) {
+  for (const retries of ["3oops", "1.5", "1e3"]) {
     const result = spawnSync(
       process.execPath,
       ["dist/cli.js", "--retries", retries, "--dockerfile", "package.json", "--json"],
