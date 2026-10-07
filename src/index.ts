@@ -229,6 +229,13 @@ function detectPort(
     if (baseImage === "postgres") return 5432;
     if (baseImage === "redis") return 6379;
     if (baseImage === "nginx") return 80;
+    if (
+      baseImage === "node" ||
+      baseImage === "python" ||
+      baseImage === "golang"
+    ) {
+      return 3000;
+    }
     return null;
   }
 

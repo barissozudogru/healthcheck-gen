@@ -10,6 +10,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ### Fixed
 
+- Node, Python, and Go images without EXPOSE now use the documented default port 3000.
 - Alpine probe detection now ignores registry path names and Docker image digests.
 - Global Dockerfile ARG values used in FROM images no longer resolve inherited object properties.
 - Dockerfile appending now preserves instructions after a HEALTHCHECK ending with an escaped backslash.

@@ -21,6 +21,13 @@ test("detects supported base images correctly", () => {
   assert.equal(parseDockerfile("FROM nginx:alpine").baseImage, "nginx");
 });
 
+test("uses the documented default port for application base images", () => {
+  for (const image of ["node:22", "python:3.12", "golang:1.22"]) {
+    const analysis = parseDockerfile(`FROM ${image}`);
+    assert.equal(analysis.port, 3000, image);
+  }
+});
+
 test("resolves global ARG values used in FROM", () => {
   const analysis = parseDockerfile([
     "ARG NODE_VERSION=22",
