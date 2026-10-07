@@ -80,7 +80,7 @@ export function isMinimalImage(rawFrom: string): boolean {
   const tag = tagSeparator === -1 ? "" : imageName.slice(tagSeparator + 1);
   const hasSlimTag = tag.split("-").includes("slim");
   const hasDistrolessPath = pathParts.some(
-    (part) => part === "distroless" || part.startsWith("distroless-")
+    (part) => part === "distroless"
   );
 
   return hasSlimTag || hasDistrolessPath;
