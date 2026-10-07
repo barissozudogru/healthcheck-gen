@@ -222,6 +222,10 @@ test("detects base images when the registry URL contains a port", () => {
 test("does not classify registry path names as minimal image variants", () => {
   assert.equal(isMinimalImage("registry.example.com/slim/node:22"), false);
   assert.equal(isMinimalImage("registry.example.com/not-slim/node:22"), false);
+  assert.equal(
+    isMinimalImage("registry.example.com/distroless-images/node:22"),
+    false
+  );
 });
 
 test("rejects invalid and overflowing healthcheck overrides from the public API", () => {
