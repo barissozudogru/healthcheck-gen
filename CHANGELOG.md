@@ -10,6 +10,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ### Fixed
 
+- Docker duration overrides now accept valid trailing decimal points such as `1.s`.
 - Nginx healthchecks now use the exposed port and default to port 80.
 - Node, Python, and Go images without EXPOSE now use the documented default port 3000.
 - Alpine probe detection now ignores registry path names and Docker image digests.

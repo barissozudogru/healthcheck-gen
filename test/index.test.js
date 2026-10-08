@@ -311,3 +311,11 @@ test("accepts compound Docker durations within the supported range", () => {
   assert.equal(result.healthcheck.startPeriod, "2500ms");
   assert.equal(result.healthcheck.retries, 5);
 });
+
+test("accepts Docker durations with a trailing decimal point", () => {
+  const result = generateFromContent("FROM node:22", {
+    interval: "1.s",
+  });
+
+  assert.equal(result.healthcheck.interval, "1.s");
+});
