@@ -28,6 +28,20 @@ test("uses the documented default port for application base images", () => {
   }
 });
 
+test("uses an exposed port for the nginx healthcheck", () => {
+  const result = generateFromContent("FROM nginx:1.27\nEXPOSE 8080");
+
+  assert.equal(result.analysis.port, 8080);
+  assert.equal(result.healthcheck.test, "curl -f http://localhost:8080/ || exit 1");
+});
+
+test("uses port 80 by default for the nginx healthcheck", () => {
+  const result = generateFromContent("FROM nginx:1.27");
+
+  assert.equal(result.analysis.port, 80);
+  assert.equal(result.healthcheck.test, "curl -f http://localhost:80/ || exit 1");
+});
+
 test("resolves global ARG values used in FROM", () => {
   const analysis = parseDockerfile([
     "ARG NODE_VERSION=22",
