@@ -193,6 +193,14 @@ test("does not partially parse malformed EXPOSE ports", () => {
   assert.equal(analysis.port, null);
 });
 
+test("uses the first port from an EXPOSE range", () => {
+  assert.equal(
+    parseDockerfile("FROM node:22\nEXPOSE 8000-8005/tcp").port,
+    8000
+  );
+  assert.equal(parseDockerfile("FROM node:22\nEXPOSE 8005-8000").port, null);
+});
+
 test("does not use UDP-only EXPOSE ports for an HTTP healthcheck", () => {
   assert.equal(parseDockerfile("FROM node:22\nEXPOSE 5353/udp").port, null);
   assert.equal(
