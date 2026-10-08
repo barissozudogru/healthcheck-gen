@@ -355,7 +355,7 @@ function buildHealthcheckConfig(
     case "nginx": {
       return {
         ...defaults,
-        test: httpCheck("http://localhost/"),
+        test: httpCheck(`http://localhost:${port ?? 80}/`),
       };
     }
 
