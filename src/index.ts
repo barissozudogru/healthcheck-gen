@@ -240,11 +240,19 @@ function detectPort(
   }
 
   for (const token of exposeLines.flatMap((line) => line.trim().split(/\s+/))) {
-    const match = /^(\d+)(?:\/(tcp|udp))?$/i.exec(token);
-    if (!match || match[2]?.toLowerCase() === "udp") continue;
+    const match = /^(\d+)(?:-(\d+))?(?:\/(tcp|udp))?$/i.exec(token);
+    if (!match || match[3]?.toLowerCase() === "udp") continue;
 
     const parsed = Number(match[1]);
-    if (parsed >= 1 && parsed <= 65535) return parsed;
+    const rangeEnd = match[2] === undefined ? parsed : Number(match[2]);
+    if (
+      parsed >= 1 &&
+      parsed <= 65535 &&
+      rangeEnd >= parsed &&
+      rangeEnd <= 65535
+    ) {
+      return parsed;
+    }
   }
 
   return null;
