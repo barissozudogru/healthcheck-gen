@@ -268,7 +268,8 @@ function detectFramework(
   // final image reference component so a path such as /express/python does not
   // misclassify an otherwise ordinary Python image.
   const imageReference = fromValue.split("/").pop() ?? fromValue;
-  const allText = [...cmdLines, ...entrypointLines, imageReference]
+  const imageName = imageReference.split("@", 1)[0].split(":", 1)[0];
+  const allText = [...cmdLines, ...entrypointLines, imageName]
     .join(" ")
     .toLowerCase();
 

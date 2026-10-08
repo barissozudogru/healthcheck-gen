@@ -172,6 +172,10 @@ test("ignores framework names in registry namespaces", () => {
   );
 });
 
+test("ignores framework names in base image tags", () => {
+  assert.equal(parseDockerfile("FROM python:3.12-express").framework, "unknown");
+});
+
 test("joins backslash continuations of CMD before detecting the framework", () => {
   const dockerfile = [
     "FROM node:22-slim",
