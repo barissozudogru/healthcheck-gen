@@ -77,13 +77,14 @@ export function isMinimalImage(rawFrom: string): boolean {
   const pathParts = lower.split("/");
   const imageName = pathParts[pathParts.length - 1] ?? lower;
   const tagSeparator = imageName.indexOf(":");
+  const untaggedImageName =
+    tagSeparator === -1 ? imageName : imageName.slice(0, tagSeparator);
   const tag = tagSeparator === -1 ? "" : imageName.slice(tagSeparator + 1);
   const hasSlimTag = tag.split("-").includes("slim");
-  const hasDistrolessPath = pathParts.some(
-    (part) => part === "distroless"
-  );
+  const hasDistrolessPath = pathParts.some((part) => part === "distroless");
+  const isDistrolessImage = untaggedImageName === "distroless";
 
-  return hasSlimTag || hasDistrolessPath;
+  return hasSlimTag || hasDistrolessPath || isDistrolessImage;
 }
 
 export function parseDockerfile(content: string): DockerfileAnalysis {
