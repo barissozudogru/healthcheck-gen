@@ -1,6 +1,8 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { generateFromContent, isMinimalImage } from "../dist/index.js";
+import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { spawnSync } from "node:child_process";
+import { generateFromContent } from "../dist/index.js";
 
 /**
  * Debian slim images ship neither curl nor wget, verified against node:22-slim
@@ -77,13 +79,24 @@ test("digest-qualified Alpine references select the Alpine probe", () => {
   );
 });
 
-test("isMinimalImage recognises slim and distroless", () => {
-  assert.equal(isMinimalImage("node:22-slim"), true);
-  assert.equal(isMinimalImage("python:3.12-slim"), true);
-  assert.equal(isMinimalImage("python:3.11-bookworm-slim"), true);
-  assert.equal(isMinimalImage("gcr.io/distroless/nodejs22"), true);
-  assert.equal(isMinimalImage("node:22"), false);
-  assert.equal(isMinimalImage("python:3.12"), false);
+test("tagged generic distroless healthchecks warn about the curl fallback", () => {
+  const directory = mkdtempSync("./.distroless-test-");
+  const dockerfile = `${directory}/Dockerfile`;
+
+  try {
+    writeFileSync(dockerfile, "FROM gcr.io/distroless:latest\nEXPOSE 8080\n");
+    const result = spawnSync(
+      process.execPath,
+      ["dist/cli.js", "--dockerfile", dockerfile],
+      { encoding: "utf8" }
+    );
+
+    assert.equal(result.status, 0);
+    assert.match(result.stdout, /curl -f http:\/\/localhost:8080\/health/);
+    assert.match(result.stdout, /is a minimal image and ships no curl or wget/);
+  } finally {
+    rmSync(directory, { recursive: true, force: true });
+  }
 });
 
 test("multi-stage builds are judged on the final stage", () => {
