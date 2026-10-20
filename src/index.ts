@@ -88,7 +88,9 @@ export function isMinimalImage(rawFrom: string): boolean {
 }
 
 export function parseDockerfile(content: string): DockerfileAnalysis {
-  // A trailing backslash continues the instruction on the next physical line,
+  const escapeCharacter = detectEscapeCharacter(content);
+
+  // A trailing escape character continues the instruction on the next physical line,
   // and CMD, ENTRYPOINT, and EXPOSE often carry the framework or the port on
   // those later lines. Merge the parts first; testing instruction prefixes on
   // the first line alone would miss them and fall back to a wrong guess.
@@ -98,7 +100,7 @@ export function parseDockerfile(content: string): DockerfileAnalysis {
     if (!line || line.startsWith("#")) continue;
 
     const previous = lines[lines.length - 1];
-    if (previous !== undefined && hasLineContinuation(previous)) {
+    if (previous !== undefined && hasLineContinuation(previous, escapeCharacter)) {
       lines[lines.length - 1] = `${previous.slice(0, -1).trimEnd()} ${line}`;
     } else {
       lines.push(line);
@@ -191,11 +193,30 @@ function resolveFromArgs(
   );
 }
 
-function hasLineContinuation(line: string): boolean {
+function detectEscapeCharacter(content: string): "\\" | "`" {
+  for (const raw of content.split("\n")) {
+    const line = raw.trim();
+    if (!line) break;
+    if (!line.startsWith("#")) break;
+
+    const match = /^#\s*escape\s*=\s*(\\|`)\s*$/i.exec(line);
+    if (match) return match[1] as "\\" | "`";
+
+    if (!/^#\s*(?:syntax|check)\s*=/i.test(line)) break;
+  }
+
+  return "\\";
+}
+
+function hasLineContinuation(line: string, escapeCharacter = "\\"): boolean {
   const trimmed = line.trimEnd();
   let trailingBackslashes = 0;
 
-  for (let i = trimmed.length - 1; i >= 0 && trimmed[i] === "\\"; i--) {
+  for (
+    let i = trimmed.length - 1;
+    i >= 0 && trimmed[i] === escapeCharacter;
+    i--
+  ) {
     trailingBackslashes++;
   }
 
@@ -373,7 +394,8 @@ function buildHealthcheckConfig(
 
 function buildDockerfileInstruction(
   config: HealthcheckConfig,
-  none = false
+  none = false,
+  escapeCharacter: "\\" | "`" = "\\"
 ): string {
   if (none) {
     return "HEALTHCHECK NONE";
@@ -386,7 +408,7 @@ function buildDockerfileInstruction(
     `  --start-period=${config.startPeriod} \\`,
     `  --retries=${config.retries} \\`,
     `  CMD ${config.test}`,
-  ].join("\n");
+  ].join("\n").replace(/\\(?=\n|$)/g, escapeCharacter);
 }
 
 /**
@@ -540,9 +562,14 @@ export function generateFromContent(
   overrides: HealthcheckOverrides = {}
 ): GeneratedHealthcheck {
   const analysis = parseDockerfile(content);
+  const escapeCharacter = detectEscapeCharacter(content);
   const healthcheck = buildHealthcheckConfig(analysis, overrides);
   const none = overrides.useNone ?? false;
-  const dockerfileInstruction = buildDockerfileInstruction(healthcheck, none);
+  const dockerfileInstruction = buildDockerfileInstruction(
+    healthcheck,
+    none,
+    escapeCharacter
+  );
   const composeBlock = buildComposeBlock(healthcheck, none);
   const healthEndpointSnippet = none
     ? null
@@ -563,6 +590,7 @@ export function appendHealthcheckToDockerfile(
 ): void {
   const absolutePath = resolve(dockerfilePath);
   const content = readFileSync(absolutePath, "utf-8");
+  const escapeCharacter = detectEscapeCharacter(content);
 
   const lines = content.split("\n");
 
@@ -587,14 +615,14 @@ export function appendHealthcheckToDockerfile(
     }
     if (skipContinuation) {
       // Keep skipping until a line without a trailing backslash is consumed.
-      if (!hasLineContinuation(line)) {
+      if (!hasLineContinuation(line, escapeCharacter)) {
         skipContinuation = false;
       }
       continue;
     }
     if (/^HEALTHCHECK(?:\s|$)/i.test(line.trim())) {
       // Start skipping; if this line itself continues, set the flag.
-      if (hasLineContinuation(line)) {
+      if (hasLineContinuation(line, escapeCharacter)) {
         skipContinuation = true;
       }
       continue;
