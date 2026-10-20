@@ -195,6 +195,52 @@ test("reads the port from a continued EXPOSE instruction", () => {
   assert.equal(analysis.port, 3000);
 });
 
+test("reads continued instructions when the Dockerfile selects backtick escapes", () => {
+  const analysis = parseDockerfile(
+    "# escape=`\nFROM node:22\nEXPOSE `\n  8080"
+  );
+
+  assert.equal(analysis.port, 8080);
+  assert.deepEqual(analysis.rawExpose, ["8080"]);
+});
+
+test("uses backtick escapes when replacing an existing multiline healthcheck", () => {
+  const directory = mkdtempSync("./.append-backtick-test-");
+  const dockerfile = join(directory, "Dockerfile");
+
+  try {
+    writeFileSync(
+      dockerfile,
+      [
+        "# escape=`",
+        "FROM node:22",
+        "HEALTHCHECK `",
+        "  --interval=1m `",
+        "  CMD echo old",
+      ].join("\n")
+    );
+
+    const generated = generateFromContent(readFileSync(dockerfile, "utf8"));
+    appendHealthcheckToDockerfile(dockerfile, generated.dockerfileInstruction);
+
+    const updated = readFileSync(dockerfile, "utf8");
+    assert.doesNotMatch(updated, /CMD echo old/);
+    assert.match(updated, /HEALTHCHECK `/);
+    assert.match(updated, /--interval=30s `/);
+    assert.doesNotMatch(updated, /\\$/m);
+  } finally {
+    rmSync(directory, { recursive: true, force: true });
+  }
+});
+
+test("does not activate an escape directive after an ordinary comment", () => {
+  const analysis = parseDockerfile(
+    "# generated Dockerfile\n# escape=`\nFROM node:22\nEXPOSE `\n  8080"
+  );
+
+  assert.equal(analysis.port, null);
+});
+
 test("does not continue lines ending with an escaped backslash", () => {
   const analysis = parseDockerfile([
     "FROM node:22",
