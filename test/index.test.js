@@ -365,3 +365,15 @@ test("accepts Docker durations with a trailing decimal point", () => {
 
   assert.equal(result.healthcheck.interval, "1.s");
 });
+
+test("accepts Docker durations with an explicit positive sign", () => {
+  const result = generateFromContent("FROM node:22", {
+    interval: "+1s",
+    timeout: "+500ms",
+    startPeriod: "+2s",
+  });
+
+  assert.equal(result.healthcheck.interval, "+1s");
+  assert.equal(result.healthcheck.timeout, "+500ms");
+  assert.equal(result.healthcheck.startPeriod, "+2s");
+});
