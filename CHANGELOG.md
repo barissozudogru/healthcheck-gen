@@ -10,6 +10,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ### Fixed
 
+- Node.js image aliases such as `nodejs:20` are now detected as Node images.
 - Tagged generic distroless images are now identified as minimal when a fallback healthcheck is generated.
 - Docker duration overrides now accept valid trailing decimal points such as `1.s`.
 - Nginx healthchecks now use the exposed port and default to port 80.

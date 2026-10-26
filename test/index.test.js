@@ -12,6 +12,7 @@ import {
 
 test("detects supported base images correctly", () => {
   assert.equal(parseDockerfile("FROM node:20-alpine").baseImage, "node");
+  assert.equal(parseDockerfile("FROM nodejs:20").baseImage, "node");
   assert.equal(parseDockerfile("FROM golang:1.21").baseImage, "golang");
   assert.equal(parseDockerfile("FROM go:1.21").baseImage, "golang");
   assert.equal(parseDockerfile("FROM python:3.11-slim").baseImage, "python");
