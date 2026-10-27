@@ -338,6 +338,14 @@ test("rejects invalid and overflowing healthcheck overrides from the public API"
   }
 });
 
+test("rejects non-string duration overrides without leaking a TypeError", () => {
+  for (const interval of [1, null, {}]) {
+    assert.throws(() => generateFromContent("FROM node:22", { interval }), {
+      message: "interval must be a valid Docker duration",
+    });
+  }
+});
+
 test("rejects positive durations that round down to zero nanoseconds", () => {
   for (const overrides of [
     { interval: "0.0000000001s" },
