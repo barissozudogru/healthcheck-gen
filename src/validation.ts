@@ -18,6 +18,8 @@ export function isDockerDuration(value: string): boolean {
 function parseDockerDuration(
   value: string
 ): { totalNumerator: bigint; totalDenominator: bigint } | null {
+  if (typeof value !== "string") return null;
+
   if (value.startsWith("+")) value = value.slice(1);
 
   const durationPart = /(\d+(?:\.\d*)?|\.\d+)(ns|us|µs|ms|s|m|h)/g;
