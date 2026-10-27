@@ -161,6 +161,10 @@ test("avoids false positive framework matches inside longer words", () => {
     "unknown"
   );
   assert.equal(
+    parseDockerfile('FROM scratch\nCMD ["./my-express-server"]').framework,
+    "unknown"
+  );
+  assert.equal(
     parseDockerfile('FROM scratch\nCMD ["./express_server"]').framework,
     "unknown"
   );
