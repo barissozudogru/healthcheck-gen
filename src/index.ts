@@ -298,7 +298,7 @@ function detectFramework(
   for (const [pattern, framework] of Object.entries(FRAMEWORK_PATTERNS)) {
     const escapedPattern = pattern.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
     const boundaryPattern = new RegExp(
-      `(?:^|[^a-z0-9_])${escapedPattern}(?:$|[^a-z0-9_])`
+      `(?:^|[^a-z0-9_-])${escapedPattern}(?:$|[^a-z0-9_-])`
     );
     if (boundaryPattern.test(allText)) {
       return framework;
