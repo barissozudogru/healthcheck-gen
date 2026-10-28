@@ -615,10 +615,11 @@ export function appendHealthcheckToDockerfile(
     }
     if (skipContinuation) {
       // Keep skipping until a line without a trailing backslash is consumed.
-      if (!line.trim()) {
+      const trimmedLine = line.trim();
+      if (!trimmedLine || trimmedLine.startsWith("#")) {
         continue;
       }
-      if (!hasLineContinuation(line, escapeCharacter)) {
+      if (!hasLineContinuation(trimmedLine, escapeCharacter)) {
         skipContinuation = false;
       }
       continue;

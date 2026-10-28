@@ -24,6 +24,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 - Framework detection no longer matches names embedded in hyphen-separated commands.
 - Framework detection now uses only the effective CMD and ENTRYPOINT instructions in each stage.
 - Framework detection now ignores names found only in base image tags.
+- Dockerfile appending now removes HEALTHCHECK continuations separated by comment lines.
 
 ## [0.5.1] - 2026-08-26
 
