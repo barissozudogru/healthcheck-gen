@@ -147,6 +147,34 @@ test("preserves instructions after a HEALTHCHECK ending with an escaped backslas
   }
 });
 
+test("removes continued HEALTHCHECKs that contain blank lines", () => {
+  const directory = mkdtempSync("./.append-blank-line-test-");
+  const dockerfile = join(directory, "Dockerfile");
+
+  try {
+    writeFileSync(
+      dockerfile,
+      [
+        "FROM node:22",
+        "HEALTHCHECK CMD echo old \\",
+        "",
+        "  --interval=1m \\",
+        "  CMD echo old2",
+        "EXPOSE 8080",
+      ].join("\n")
+    );
+
+    appendHealthcheckToDockerfile(dockerfile, "HEALTHCHECK CMD replacement");
+
+    const updated = readFileSync(dockerfile, "utf8");
+    assert.doesNotMatch(updated, /old2/);
+    assert.match(updated, /EXPOSE 8080/);
+    assert.match(updated, /HEALTHCHECK CMD replacement/);
+  } finally {
+    rmSync(directory, { recursive: true, force: true });
+  }
+});
+
 test("avoids false positive base image matches for substring patterns", () => {
   assert.equal(parseDockerfile("FROM mongo:6.0").baseImage, "unknown");
   assert.equal(parseDockerfile("FROM django:4.2").baseImage, "unknown");
