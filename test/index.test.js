@@ -22,6 +22,13 @@ test("detects supported base images correctly", () => {
   assert.equal(parseDockerfile("FROM nginx:alpine").baseImage, "nginx");
 });
 
+test("rejects non-string Dockerfile content with a clear error", () => {
+  assert.throws(() => parseDockerfile(null), {
+    name: "TypeError",
+    message: "Dockerfile content must be a string",
+  });
+});
+
 test("uses the documented default port for application base images", () => {
   for (const image of ["node:22", "python:3.12", "golang:1.22"]) {
     const analysis = parseDockerfile(`FROM ${image}`);

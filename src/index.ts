@@ -88,6 +88,10 @@ export function isMinimalImage(rawFrom: string): boolean {
 }
 
 export function parseDockerfile(content: string): DockerfileAnalysis {
+  if (typeof content !== "string") {
+    throw new TypeError("Dockerfile content must be a string");
+  }
+
   const escapeCharacter = detectEscapeCharacter(content);
 
   // A trailing escape character continues the instruction on the next physical line,
