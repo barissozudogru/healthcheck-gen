@@ -10,6 +10,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ### Fixed
 
+- Dockerfile parsing now rejects non-string content with a clear TypeError.
 - Node.js image aliases such as `nodejs:20` are now detected as Node images.
 - Tagged generic distroless images are now identified as minimal when a fallback healthcheck is generated.
 - Docker duration overrides now accept valid trailing decimal points such as `1.s`.
