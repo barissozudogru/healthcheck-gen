@@ -61,6 +61,10 @@ export function isPositiveDockerDuration(value: string): boolean {
 export function validateHealthcheckOverrides(
   overrides: HealthcheckOverrides
 ): void {
+  if (overrides === null || typeof overrides !== "object") {
+    throw new TypeError("healthcheck overrides must be an object");
+  }
+
   const durations: Array<[string, string | undefined]> = [
     ["interval", overrides.interval],
     ["timeout", overrides.timeout],

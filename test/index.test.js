@@ -29,6 +29,13 @@ test("rejects non-string Dockerfile content with a clear error", () => {
   });
 });
 
+test("rejects null healthcheck overrides with a clear error", () => {
+  assert.throws(() => generateFromContent("FROM node:22", null), {
+    name: "TypeError",
+    message: "healthcheck overrides must be an object",
+  });
+});
+
 test("uses the documented default port for application base images", () => {
   for (const image of ["node:22", "python:3.12", "golang:1.22"]) {
     const analysis = parseDockerfile(`FROM ${image}`);
