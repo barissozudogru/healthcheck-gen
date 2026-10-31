@@ -88,4 +88,8 @@ export function validateHealthcheckOverrides(
   ) {
     throw new Error("retries must be a positive integer");
   }
+
+  if (overrides.useNone !== undefined && typeof overrides.useNone !== "boolean") {
+    throw new Error("useNone must be a boolean");
+  }
 }
