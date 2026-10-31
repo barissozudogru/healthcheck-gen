@@ -36,6 +36,12 @@ test("rejects null healthcheck overrides with a clear error", () => {
   });
 });
 
+test("rejects non-boolean useNone overrides", () => {
+  assert.throws(() => generateFromContent("FROM node:22", { useNone: "false" }), {
+    message: "useNone must be a boolean",
+  });
+});
+
 test("uses the documented default port for application base images", () => {
   for (const image of ["node:22", "python:3.12", "golang:1.22"]) {
     const analysis = parseDockerfile(`FROM ${image}`);
