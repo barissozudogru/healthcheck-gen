@@ -36,6 +36,13 @@ test("rejects null healthcheck overrides with a clear error", () => {
   });
 });
 
+test("rejects array healthcheck overrides with a clear error", () => {
+  assert.throws(() => generateFromContent("FROM node:22", []), {
+    name: "TypeError",
+    message: "healthcheck overrides must be an object",
+  });
+});
+
 test("rejects non-boolean useNone overrides", () => {
   assert.throws(() => generateFromContent("FROM node:22", { useNone: "false" }), {
     message: "useNone must be a boolean",
