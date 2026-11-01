@@ -6,6 +6,7 @@ import {
   analyzeDockerfile,
   appendHealthcheckToDockerfile,
   generateFromContent,
+  isAlpineImage,
   isMinimalImage,
   parseDockerfile,
 } from "../dist/index.js";
@@ -20,6 +21,10 @@ test("detects supported base images correctly", () => {
   assert.equal(parseDockerfile("FROM postgres:15-alpine").baseImage, "postgres");
   assert.equal(parseDockerfile("FROM redis:7-alpine").baseImage, "redis");
   assert.equal(parseDockerfile("FROM nginx:alpine").baseImage, "nginx");
+});
+
+test("detects Alpine variants with underscore-separated tags", () => {
+  assert.equal(isAlpineImage("node:22-alpine_edge"), true);
 });
 
 test("rejects non-string Dockerfile content with a clear error", () => {

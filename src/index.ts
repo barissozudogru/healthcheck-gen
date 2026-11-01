@@ -59,7 +59,7 @@ export function isAlpineImage(rawFrom: string): boolean {
   if (imageName === "alpine") return true;
 
   return tag
-    .split("-")
+    .split(/[-_]/)
     .some((part) => part === "alpine" || /^alpine(?:\d|\.)/.test(part));
 }
 
