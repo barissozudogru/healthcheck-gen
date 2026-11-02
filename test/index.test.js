@@ -407,6 +407,10 @@ test("does not classify registry path names as minimal image variants", () => {
   );
 });
 
+test("detects underscore-separated slim image tags", () => {
+  assert.equal(isMinimalImage("node:22_slim"), true);
+});
+
 test("rejects invalid and overflowing healthcheck overrides from the public API", () => {
   for (const overrides of [
     { interval: "banana" },
