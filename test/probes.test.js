@@ -31,6 +31,12 @@ test("node slim uses the node runtime", () => {
   assert.ok(probe.includes("catch"), "a network error must exit non-zero, not throw");
 });
 
+test("underscore-separated slim image names use the runtime probe", () => {
+  const probe = probeFor("FROM nodejs_slim:20\nEXPOSE 3000");
+  assert.match(probe, /^node -e /);
+  assert.ok(!probe.includes("curl"));
+});
+
 test("distroless node images use the node runtime", () => {
   const probe = probeFor("FROM gcr.io/distroless/nodejs22\nEXPOSE 3000");
   assert.match(probe, /^node -e /);
