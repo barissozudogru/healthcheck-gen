@@ -376,13 +376,16 @@ function buildHealthcheckConfig(
     case "postgres":
       return {
         ...defaults,
-        test: "pg_isready -U ${POSTGRES_USER:-postgres}",
+        test:
+          port === null || port === 5432
+            ? "pg_isready -U ${POSTGRES_USER:-postgres}"
+            : `pg_isready -U \${POSTGRES_USER:-postgres} -p ${port}`,
       };
 
     case "redis":
       return {
         ...defaults,
-        test: "redis-cli ping",
+        test: port === null || port === 6379 ? "redis-cli ping" : `redis-cli -p ${port} ping`,
       };
 
     case "nginx": {

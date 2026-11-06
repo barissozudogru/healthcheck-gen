@@ -77,6 +77,17 @@ test("uses port 80 by default for the nginx healthcheck", () => {
   assert.equal(result.healthcheck.test, "curl -f http://localhost:80/ || exit 1");
 });
 
+test("passes custom exposed ports to service healthchecks", () => {
+  assert.equal(
+    generateFromContent("FROM postgres:16\nEXPOSE 55432").healthcheck.test,
+    "pg_isready -U ${POSTGRES_USER:-postgres} -p 55432"
+  );
+  assert.equal(
+    generateFromContent("FROM redis:7\nEXPOSE 16379").healthcheck.test,
+    "redis-cli -p 16379 ping"
+  );
+});
+
 test("resolves global ARG values used in FROM", () => {
   const analysis = parseDockerfile([
     "ARG NODE_VERSION=22",
