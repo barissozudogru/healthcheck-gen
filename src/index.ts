@@ -121,6 +121,7 @@ export function parseDockerfile(content: string): DockerfileAnalysis {
   // We only want analysis from the FINAL stage.
   let currentStageFrom = "";
   const globalArgs: Record<string, string> = Object.create(null);
+  const stageBases: Record<string, string> = Object.create(null);
   let seenFrom = false;
   const rawExpose: string[] = [];
   const rawCmd: string[] = [];
@@ -154,13 +155,16 @@ export function parseDockerfile(content: string): DockerfileAnalysis {
 
       // Strip --flag=value tokens (e.g. --platform=linux/amd64) before
       // extracting the image name.
-      currentStageFrom = resolveFromArgs(
-        argumentsText
+      const fromParts = argumentsText
         .replace(/--\w+=\S+\s*/g, "")
         .trim()
-        .split(/\s+/)[0],
-        globalArgs
-      );
+        .split(/\s+/);
+      const resolvedFrom = resolveFromArgs(fromParts[0], globalArgs);
+      currentStageFrom = stageBases[resolvedFrom] ?? resolvedFrom;
+
+      if (fromParts[1]?.toUpperCase() === "AS" && fromParts[2]) {
+        stageBases[fromParts[2]] = currentStageFrom;
+      }
     } else if (instruction === "EXPOSE") {
       stageExpose.push(argumentsText);
     } else if (instruction === "CMD") {

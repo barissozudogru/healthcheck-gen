@@ -117,3 +117,16 @@ test("multi-stage builds are judged on the final stage", () => {
   // must suit the slim stage.
   assert.match(probeFor(multi), /^node -e /);
 });
+
+test("inherits the base image when the final stage references a named stage", () => {
+  const dockerfile = [
+    "FROM node:22-slim AS runtime",
+    "FROM runtime",
+    "EXPOSE 3000",
+  ].join("\n");
+  const analysis = generateFromContent(dockerfile).analysis;
+
+  assert.equal(analysis.baseImage, "node");
+  assert.equal(analysis.rawFrom, "node:22-slim");
+  assert.match(probeFor(dockerfile), /^node -e /);
+});
