@@ -122,6 +122,8 @@ export function parseDockerfile(content: string): DockerfileAnalysis {
   let currentStageFrom = "";
   const globalArgs: Record<string, string> = Object.create(null);
   const stageBases: Record<string, string> = Object.create(null);
+  const stageExposes: Record<string, string[]> = Object.create(null);
+  let currentStageName = "";
   let seenFrom = false;
   const rawExpose: string[] = [];
   const rawCmd: string[] = [];
@@ -161,12 +163,21 @@ export function parseDockerfile(content: string): DockerfileAnalysis {
         .split(/\s+/);
       const resolvedFrom = resolveFromArgs(fromParts[0], globalArgs);
       currentStageFrom = stageBases[resolvedFrom] ?? resolvedFrom;
+      currentStageName = "";
+      stageExpose = stageExposes[resolvedFrom]
+        ? [...stageExposes[resolvedFrom]]
+        : [];
 
       if (fromParts[1]?.toUpperCase() === "AS" && fromParts[2]) {
+        currentStageName = fromParts[2];
         stageBases[fromParts[2]] = currentStageFrom;
+        stageExposes[fromParts[2]] = stageExpose;
       }
     } else if (instruction === "EXPOSE") {
       stageExpose.push(argumentsText);
+      if (currentStageName) {
+        stageExposes[currentStageName] = stageExpose;
+      }
     } else if (instruction === "CMD") {
       // Docker uses only the last CMD in a stage.
       stageCmd = [argumentsText];

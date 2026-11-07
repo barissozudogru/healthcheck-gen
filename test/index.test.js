@@ -112,6 +112,18 @@ test("resolves global ARG values used in FROM", () => {
   );
 });
 
+test("inherits exposed ports when the final stage references a named stage", () => {
+  const analysis = parseDockerfile([
+    "FROM node:22 AS runtime",
+    "EXPOSE 8080",
+    "FROM runtime",
+  ].join("\n"));
+
+  assert.equal(analysis.rawFrom, "node:22");
+  assert.deepEqual(analysis.rawExpose, ["8080"]);
+  assert.equal(analysis.port, 8080);
+});
+
 test("accepts tabs between Dockerfile instructions and their arguments", () => {
   const analysis = parseDockerfile("FROM\tnode:22\nEXPOSE\t8080");
 
