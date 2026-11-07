@@ -28,6 +28,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 - Framework detection now uses only the effective CMD and ENTRYPOINT instructions in each stage.
 - Framework detection now ignores names found only in base image tags.
 - Dockerfile appending now removes HEALTHCHECK continuations separated by comment lines.
+- Dockerfile parsing now inherits effective CMD and ENTRYPOINT metadata when the final stage references a named stage.
 
 ## [0.5.1] - 2026-08-26
 
