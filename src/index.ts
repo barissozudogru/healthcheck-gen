@@ -123,6 +123,8 @@ export function parseDockerfile(content: string): DockerfileAnalysis {
   const globalArgs: Record<string, string> = Object.create(null);
   const stageBases: Record<string, string> = Object.create(null);
   const stageExposes: Record<string, string[]> = Object.create(null);
+  const stageCmds: Record<string, string[]> = Object.create(null);
+  const stageEntrypoints: Record<string, string[]> = Object.create(null);
   let currentStageName = "";
   let seenFrom = false;
   const rawExpose: string[] = [];
@@ -167,11 +169,17 @@ export function parseDockerfile(content: string): DockerfileAnalysis {
       stageExpose = stageExposes[resolvedFrom]
         ? [...stageExposes[resolvedFrom]]
         : [];
+      stageCmd = stageCmds[resolvedFrom] ? [...stageCmds[resolvedFrom]] : [];
+      stageEntrypoint = stageEntrypoints[resolvedFrom]
+        ? [...stageEntrypoints[resolvedFrom]]
+        : [];
 
       if (fromParts[1]?.toUpperCase() === "AS" && fromParts[2]) {
         currentStageName = fromParts[2];
         stageBases[fromParts[2]] = currentStageFrom;
         stageExposes[fromParts[2]] = stageExpose;
+        stageCmds[fromParts[2]] = stageCmd;
+        stageEntrypoints[fromParts[2]] = stageEntrypoint;
       }
     } else if (instruction === "EXPOSE") {
       stageExpose.push(argumentsText);
@@ -181,9 +189,15 @@ export function parseDockerfile(content: string): DockerfileAnalysis {
     } else if (instruction === "CMD") {
       // Docker uses only the last CMD in a stage.
       stageCmd = [argumentsText];
+      if (currentStageName) {
+        stageCmds[currentStageName] = stageCmd;
+      }
     } else if (instruction === "ENTRYPOINT") {
       // Docker uses only the last ENTRYPOINT in a stage.
       stageEntrypoint = [argumentsText];
+      if (currentStageName) {
+        stageEntrypoints[currentStageName] = stageEntrypoint;
+      }
     }
   }
 

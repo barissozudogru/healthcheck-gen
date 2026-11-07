@@ -124,6 +124,28 @@ test("inherits exposed ports when the final stage references a named stage", () 
   assert.equal(analysis.port, 8080);
 });
 
+test("inherits the effective command when the final stage references a named stage", () => {
+  const analysis = parseDockerfile([
+    "FROM python:3.12 AS runtime",
+    'CMD ["uvicorn", "app:app"]',
+    "FROM runtime",
+  ].join("\n"));
+
+  assert.equal(analysis.framework, "uvicorn");
+  assert.deepEqual(analysis.rawCmd, ['["uvicorn", "app:app"]']);
+});
+
+test("inherits the effective entrypoint when the final stage references a named stage", () => {
+  const analysis = parseDockerfile([
+    "FROM python:3.12 AS runtime",
+    'ENTRYPOINT ["gunicorn", "app:app"]',
+    "FROM runtime",
+  ].join("\n"));
+
+  assert.equal(analysis.framework, "gunicorn");
+  assert.deepEqual(analysis.rawEntrypoint, ['["gunicorn", "app:app"]']);
+});
+
 test("accepts tabs between Dockerfile instructions and their arguments", () => {
   const analysis = parseDockerfile("FROM\tnode:22\nEXPOSE\t8080");
 
