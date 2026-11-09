@@ -29,6 +29,10 @@ test("detects Alpine variants with underscore-separated tags", () => {
   assert.equal(isAlpineImage("node:22-alpine_edge"), true);
 });
 
+test("detects Alpine variants with custom suffixes", () => {
+  assert.equal(isAlpineImage("node:22-alpinev3"), true);
+});
+
 test("rejects non-string Dockerfile content with a clear error", () => {
   assert.throws(() => parseDockerfile(null), {
     name: "TypeError",
